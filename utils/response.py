@@ -3,6 +3,7 @@ from typing import Any, Dict, List
 from rest_framework import status
 from rest_framework.response import Response
 
+
 class CustomResponse:
     """A custom response class for API views.
 
@@ -12,10 +13,10 @@ class CustomResponse:
     """
 
     def __init__(
-        self,
-        message: Dict[str, Any] = None,
-        general_message: List[str] = None,
-        response: Dict[str, Any] = None,
+            self,
+            message: Dict[str, Any] = None,
+            general_message: List[str] = None,
+            response: Dict[str, Any] = None,
     ) -> None:
         """Initializes the CustomResponse object.
 
@@ -53,9 +54,9 @@ class CustomResponse:
         )
 
     def get_failure_response(
-        self,
-        status_code: int = 400,
-        http_status_code: int = status.HTTP_400_BAD_REQUEST,
+            self,
+            status_code: int = 400,
+            http_status_code: int = status.HTTP_400_BAD_REQUEST,
     ) -> Response:
         """Returns a failure response.
 
