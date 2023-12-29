@@ -13,11 +13,8 @@ DEBUG = decouple_config('DEBUG',bool)
 ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
-    # 'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
-    # 'django.contrib.sessions',
-    # 'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
@@ -32,12 +29,12 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
      'corsheaders.middleware.CorsMiddleware',
-     'yipbackend.middlewares.UniversalErrorHandlerMiddleware'
+     'yiptracking.middlewares.UniversalErrorHandlerMiddleware'
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
 
-ROOT_URLCONF = 'yipbackend.urls'
+ROOT_URLCONF = 'yiptracking.urls'
 
 TEMPLATES = [
     {
@@ -55,7 +52,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'yipbackend.wsgi.application'
+WSGI_APPLICATION = 'yiptracking.wsgi.application'
 
 DATABASES = {
    "default": {
@@ -68,11 +65,6 @@ DATABASES = {
    }
 }
 
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'utils.authentication.JWTAuthentication',
-    ]
-}
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -161,8 +153,6 @@ STATIC_ROOT=os.path.join(BASE_DIR, "staticfiles","static")
 STATIC_URL = '/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# AUTH_USER_MODEL = "api.CustomUser"
 
 JWT_CONF = {
   "TOKEN_LIFETIME_HOURS":240

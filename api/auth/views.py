@@ -11,10 +11,19 @@ from django.contrib.auth.hashers import check_password
 from rest_framework.views import APIView
 
 from utils.response import CustomResponse
-from utils.authentication import get_current_utc_time, generate_jwt
+from utils.authentication import generate_jwt, JWTUtils
+from utils.utils import DateTimeUtils
 from db.models import User
 
+
 class UserRegisterAPI(views.APIView):
+    def get(self,request):
+        email = request.data.get('email')
+        if not email: 
+            return CustomResponse(general_message="Invalid email").get_success_response()
+        
+        serializer = UserSerializer(instance=User.objects.filter(email=email).first(),many=False)
+        return CustomResponse(message=serializer.data).get_success_response()
     def post(self, request):
         serializer = UserSerializer(data=request.data) 
         if serializer.is_valid():  
@@ -22,18 +31,18 @@ class UserRegisterAPI(views.APIView):
             return CustomResponse(general_message='User created successfully').get_success_response()
                 
         else:  
-            return Response({"status": "error", "data": serializer.errors}, status=status.HTTP_400_BAD_REQUEST) 
+            return CustomResponse(general_message="Invalid Request",message=serializer.errors).get_failure_response()
     
-    def put(self, request:HttpRequest ):
-        instance = User.objects.filter(username=request.POST.get('username',None)).first()
-        if instance == None:
-            return CustomResponse(general_message='User not found').get_failure_response()
-        serializer = UserSerializer(instance=instance,data=request.data) 
-        if serializer.is_valid():  
-            serializer.update() 
-            return CustomResponse(general_message='User updated successfully',message=serializer.data).get_success_response()
-        else:  
-            return CustomResponse(general_message="Invalid data!",message=serializer.data)
+    # def put(self, request:HttpRequest ):
+    #     instance = User.objects.filter(username=request.POST.get('email',None)).first()
+    #     if instance == None:
+    #         return CustomResponse(general_message='User not found').get_failure_response()
+    #     serializer = UserSerializer(instance=instance,data=request.data) 
+    #     if serializer.is_valid():  
+    #         serializer.update() 
+    #         return CustomResponse(general_message='User updated successfully',message=serializer.data).get_success_response()
+    #     else:  
+    #         return CustomResponse(general_message="Invalid data!",message=serializer.data)
 
 
 class UserAuthenticationAPI(APIView):
@@ -73,7 +82,7 @@ class GetAccessToken(APIView):
             if not user:
                 return CustomResponse(general_message="User invalid").get_failure_response(1004)
             
-            access_expiry_time = get_current_utc_time() + timedelta(seconds=10800)  # 3 hour
+            access_expiry_time = DateTimeUtils.get_current_utc_time() + timedelta(seconds=10800)  # 3 hour
             access_expiry = access_expiry_time.strftime("%Y-%m-%d %H:%M:%S%z")
             access_token = jwt.encode(
                 {
