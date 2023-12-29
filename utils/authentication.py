@@ -15,6 +15,7 @@ from .utils import DateTimeUtils
 
 User = get_user_model()
 
+
 class CustomizePermission(BasePermission):
     """
     Custom permission class to authenticate user based on bearer token.
@@ -141,7 +142,6 @@ class JWTUtils:
             return False
 
 
-
 class JWTAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
         # Extract the JWT from the Authorization header
@@ -166,7 +166,7 @@ class JWTAuthentication(authentication.BaseAuthentication):
 
         user = User.objects.filter(username=username_or_phone_number).first()
         if user is None:
-          raise AuthenticationFailed('User not found')
+            raise AuthenticationFailed('User not found')
 
         # Return the user and token payload
         return user, payload
@@ -196,6 +196,7 @@ class JWTAuthentication(authentication.BaseAuthentication):
         token = token.replace('Bearer', '').replace(' ', '')  # clean the token
         return token
 
+
 def string_to_date_time(dt_str):
     return datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S%z")
 
@@ -205,30 +206,28 @@ def generate_jwt(user):
     access_expiry = str(DateTimeUtils.format_time(access_expiry_time))
 
     access_token = jwt.encode(
-        {'id': user.id, 'email': user.email,'expiry': access_expiry, 'tokenType': 'access'},
+        {'id': user.id, 'email': user.email, 'expiry': access_expiry, 'tokenType': 'access'},
         decouple.config('SECRET_KEY'),
         algorithm="HS256")
 
     refresh_token = jwt.encode(
-        {'id': user.id, 'email': user.email,'tokenType': 'refresh'},
+        {'id': user.id, 'email': user.email, 'tokenType': 'refresh'},
         decouple.config('SECRET_KEY'),
         algorithm="HS256")
     return access_token, refresh_token
 
 
 def generate_access_token(user):
-
     access_expiry_time = DateTimeUtils.get_current_utc_time() + timedelta(seconds=10800)  # 3 hour
     access_expiry = str(DateTimeUtils.format_time(access_expiry_time))
 
     access_token = jwt.encode(
-        {'id': user.id, 'email': user.email,'expiry': access_expiry, 'tokenType': 'access'},
+        {'id': user.id, 'email': user.email, 'expiry': access_expiry, 'tokenType': 'access'},
         decouple.config('SECRET_KEY'),
         algorithm="HS256")
 
     refresh_token = jwt.encode(
-        {'id': user.id, 'email': user.email,'tokenType': 'refresh'},
+        {'id': user.id, 'email': user.email, 'tokenType': 'refresh'},
         decouple.config('SECRET_KEY'),
         algorithm="HS256")
     return access_token, refresh_token
-
