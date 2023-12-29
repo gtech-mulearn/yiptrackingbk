@@ -2,8 +2,8 @@ from rest_framework import views, permissions, status
 from rest_framework.response import Response
 from datetime import datetime
 from .serializers import *
-from ..authentication import JWTAuthentication
-from ..models import CustomUser as User
+from utils.authentication import JWTAuthentication
+from db.models import CustomUser as User
 from django.db.models import Q
 
 from rest_framework.decorators import api_view, permission_classes
