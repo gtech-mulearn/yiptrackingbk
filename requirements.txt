@@ -8,3 +8,5 @@ django-cors-headers
 python-decouple
 pymysql==1.0.2
 mysqlclient==2.1.1
+requests==2.28.2
+user-agents==2.2.0

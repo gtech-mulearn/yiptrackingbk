@@ -1,16 +1,20 @@
-from rest_framework import views, permissions, status
+from rest_framework import views, status
 from rest_framework.response import Response
-from datetime import datetime
 from .serializers import *
-from utils.authentication import JWTAuthentication
-from db.models import CustomUser as User
-from django.db.models import Q
-
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from db.models import User
 from django.http import HttpRequest
 from utils.response import CustomResponse
-class UserView(views.APIView):
+import decouple
+import jwt
+from datetime import timedelta
+from django.contrib.auth.hashers import check_password
+from rest_framework.views import APIView
+
+from utils.response import CustomResponse
+from utils.authentication import get_current_utc_time, generate_jwt
+from db.models import User
+
+class UserRegisterAPI(views.APIView):
     def post(self, request):
         serializer = UserSerializer(data=request.data) 
         if serializer.is_valid():  
@@ -21,7 +25,7 @@ class UserView(views.APIView):
             return Response({"status": "error", "data": serializer.errors}, status=status.HTTP_400_BAD_REQUEST) 
     
     def put(self, request:HttpRequest ):
-        instance = CustomUser.objects.filter(username=request.POST.get('username',None)).first()
+        instance = User.objects.filter(username=request.POST.get('username',None)).first()
         if instance == None:
             return CustomResponse(general_message='User not found').get_failure_response()
         serializer = UserSerializer(instance=instance,data=request.data) 
@@ -29,33 +33,58 @@ class UserView(views.APIView):
             serializer.update() 
             return CustomResponse(general_message='User updated successfully',message=serializer.data).get_success_response()
         else:  
-            return Response({"status": "error", "data": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            return CustomResponse(general_message="Invalid data!",message=serializer.data)
+
+
+class UserAuthenticationAPI(APIView):
+    def post(self, request):
+        email = request.data.get('email')
+        password = request.data.get('password')
+        if not email or not password:
+            return CustomResponse(general_message="Please provide a valid email and password").get_failure_response()
+        if password:
+            user = User.objects.filter(email=email).first()
+            if user:
+                if user.password and check_password(password, user.password):
+                    access_token, refresh_token = generate_jwt(user)
+                    return CustomResponse(
+                        response={'accessToken': access_token, 'refreshToken': refresh_token}).get_success_response()
+                else:
+                    return CustomResponse(general_message="Invalid password").get_failure_response()
+            else:
+                return CustomResponse(general_message="Invalid muid or email").get_failure_response()
         
-# class VerificationView(views.APIView):
-#     def get(self,request):
-#         if request.user.is_authenticated:
-#             return Response({"status":"success",'data':{'verified':True,'verified_as':request.user.username}})
-#         else:
-#             return Response({"status":"success",'data':{'verified':False}})
- 
-# AUTHORIZATION: Bearer <TOKEN>
-class ObtainTokenView(views.APIView):
-    permission_classes = [permissions.AllowAny]
-    serializer_class = ObtainTokenSerializer
+class GetAccessToken(APIView):
+    def post(self, request):
+        refresh_token = request.data.get('refreshToken')
+        try:
+            payload = jwt.decode(refresh_token, decouple.config('SECRET_KEY'), algorithms="HS256", verify=True)
+        except Exception as e:
+            return CustomResponse(general_message=str(e)).get_failure_response()
 
-    def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        email = payload.get('email')
+        token_type = payload.get('tokenType')
 
-        username = serializer.validated_data.get('username')
-        password = serializer.validated_data.get('password')
+        if token_type != "refresh":
+            return CustomResponse(general_message="Invalid refresh token").get_failure_response(1003)
 
-        user = User.objects.filter(username=username).first()
-        # print(user.check_password(password),password,user.password)
-        if user is None or not user.password== password:
-            return Response({'message': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Generate the JWT token
-        jwt_token = JWTAuthentication.create_jwt(user)
-
-        return Response({'token': jwt_token})
+        if email:
+            user = User.objects.filter(email=email).first()
+            if not user:
+                return CustomResponse(general_message="User invalid").get_failure_response(1004)
+            
+            access_expiry_time = get_current_utc_time() + timedelta(seconds=10800)  # 3 hour
+            access_expiry = access_expiry_time.strftime("%Y-%m-%d %H:%M:%S%z")
+            access_token = jwt.encode(
+                {
+                    'id': user.id, 
+                    'email': user.email, 
+                    'expiry': access_expiry,
+                    'tokenType': 'access'
+                },
+                decouple.config('SECRET_KEY'),
+                algorithm="HS256")
+            return CustomResponse(response={'accessToken': access_token, 'refreshToken': refresh_token,
+                                            'expiry': access_expiry}).get_success_response()
+        else:
+            return CustomResponse(general_message="Invalid token").get_failure_response()

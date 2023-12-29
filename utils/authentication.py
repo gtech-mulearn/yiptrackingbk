@@ -7,9 +7,9 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework import authentication
 from rest_framework.exceptions import AuthenticationFailed, ParseError
+import decouple, pytz
 
 User = get_user_model()
-
 
 class JWTAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
@@ -64,3 +64,60 @@ class JWTAuthentication(authentication.BaseAuthentication):
     def get_the_token_from_header(cls, token):
         token = token.replace('Bearer', '').replace(' ', '')  # clean the token
         return token
+    
+
+
+
+def format_time(date_time):
+    formated_time = date_time.strftime("%Y-%m-%d %H:%M:%S%z")
+    return datetime.strptime(formated_time, "%Y-%m-%d %H:%M:%S%z")
+
+
+def get_current_utc_time() -> datetime:
+    """
+    Returns the current time in UTC.
+
+    Returns:
+        datetime.datetime: The current time in UTC.
+    """
+    local_now = datetime.now(pytz.timezone("UTC"))
+
+    return format_time(local_now)
+
+
+def string_to_date_time(dt_str):
+    return datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S%z")
+
+
+def generate_jwt(user):
+    access_expiry_time = get_current_utc_time() + timedelta(seconds=10800)  # 3 hour
+    access_expiry = str(format_time(access_expiry_time))
+
+    access_token = jwt.encode(
+        {'id': user.id, 'email': user.email,'expiry': access_expiry, 'tokenType': 'access'},
+        decouple.config('SECRET_KEY'),
+        algorithm="HS256")
+
+    refresh_token = jwt.encode(
+        {'id': user.id, 'email': user.email,'tokenType': 'refresh'},
+        decouple.config('SECRET_KEY'),
+        algorithm="HS256")
+    return access_token, refresh_token
+
+
+def generate_access_token(user):
+
+    access_expiry_time = get_current_utc_time() + timedelta(seconds=10800)  # 3 hour
+    access_expiry = str(format_time(access_expiry_time))
+
+    access_token = jwt.encode(
+        {'id': user.id, 'email': user.email,'expiry': access_expiry, 'tokenType': 'access'},
+        decouple.config('SECRET_KEY'),
+        algorithm="HS256")
+
+    refresh_token = jwt.encode(
+        {'id': user.id, 'email': user.email,'tokenType': 'refresh'},
+        decouple.config('SECRET_KEY'),
+        algorithm="HS256")
+    return access_token, refresh_token
+

@@ -3,7 +3,6 @@ from typing import Any, Dict, List
 from rest_framework import status
 from rest_framework.response import Response
 
-
 class CustomResponse:
     """A custom response class for API views.
 

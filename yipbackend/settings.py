@@ -6,9 +6,9 @@ from decouple import config as decouple_config
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(os.path.join(BASE_DIR, '.env'))
 
-SECRET_KEY = 'django-insecure-!sw(ju)=9(qil*)xc)yas+)*5i%@0c1p(&$vu78ydrk19pojo&'
+SECRET_KEY = decouple_config('SECRET_KEY')
 
-DEBUG = False
+DEBUG = decouple_config('DEBUG',bool)
 
 ALLOWED_HOSTS = ['*']
 

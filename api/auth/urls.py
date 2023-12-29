@@ -1,11 +1,8 @@
 from django.urls import path, include
-from .views import *
-from rest_framework import routers 
+from .views import UserRegisterAPI, UserAuthenticationAPI,  GetAccessToken
 
 urlpatterns = [
-    #path('auth/token', ObtainTokenView.as_view()),
-    path('register/',UserView.as_view()),
-    path('token/',ObtainTokenView.as_view()),
-    path('update/',UserView.as_view()),
-    # path('verify/',VerificationView.as_view())
+    path('user-authentication/', UserAuthenticationAPI.as_view()),
+    path('refresh-token/',GetAccessToken.as_view()),
+    path('register/',UserRegisterAPI.as_view()),
 ]
