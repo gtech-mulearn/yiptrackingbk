@@ -1,0 +1,15 @@
+version: '3'
+services:
+  yiptracking:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: yiptracking
+    image: yiptracking
+    restart: always
+    ports:
+      - "8005:8000"
+    volumes:
+      - /var/log/yiptracking:/var/log/yiptracking
+    env_file:
+      - .env
