@@ -1,0 +1,10 @@
+pyjwt
+Django==4.2.6
+psycopg2-binary
+djangorestframework
+tzdata
+python-dotenv
+django-cors-headers
+python-decouple
+pymysql==1.0.2
+mysqlclient==2.1.1
