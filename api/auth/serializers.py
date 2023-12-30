@@ -62,7 +62,10 @@ class UserSerializer(serializers.ModelSerializer):
                     'whatsapp':org.whatsapp,
                     'participants':org.participants,
                     'visited_at':org.visited_at,
-
+                    'district_id':org.org_id.district_id.id,
+                    'district_name':org.org_id.district_id.name,
+                    'zone_id':org.org_id.district_id.zone_id.id,
+                    'zone_name':org.org_id.district_id.zone_id.name,
                 })
             elif org.org_id.org_type == OrgType.SCHOOL.value:
                 data['school'].append({
@@ -76,6 +79,9 @@ class UserSerializer(serializers.ModelSerializer):
                     'whatsapp':org.whatsapp,
                     'participants':org.participants,
                     'visited_at':org.visited_at,
-
+                    'district_id':org.org_id.district_id.id,
+                    'district_name':org.org_id.district_id.name,
+                    'zone_id':org.org_id.district_id.zone_id.id,
+                    'zone_name':org.org_id.district_id.zone_id.name,
                 })
         return data
