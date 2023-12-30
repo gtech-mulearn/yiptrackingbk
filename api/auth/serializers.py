@@ -7,7 +7,6 @@ class UserSerializer(serializers.ModelSerializer):
     user_id = serializers.CharField(source='id', read_only=True)
     password = serializers.CharField(write_only=True)
     assigned = serializers.SerializerMethodField(method_name='get_assigned')
-    visited = serializers.SerializerMethodField(method_name='get_visited')
 
     def create(self, validated_data):
         password = validated_data.pop("password")
@@ -38,7 +37,6 @@ class UserSerializer(serializers.ModelSerializer):
             'dob',
             'district_id',
             'org_id',
-            'visited',
             'assigned',
             'updated_at',
             'created_at',
@@ -46,18 +44,38 @@ class UserSerializer(serializers.ModelSerializer):
         ]
     
     def get_assigned(self, obj):
-        assigned_orgs = UserOrgLink.objects.filter(user_id=obj.id,visited=False)
-        return [{
-            'org_id': org.org_id.id,
-            'name':org.org_id.title,
-            'code':org.org_id.code,
-        } for org in assigned_orgs]
-    
-    def get_visited(self, obj):
-        assigned_orgs = UserOrgLink.objects.filter(user_id=obj.id,visited=True)
-        return [{
-            'org_id': org.org_id.id,
-            'name':org.org_id.title,
-            'code':org.org_id.code,
-        } for org in assigned_orgs]
-        
+        assigned_orgs = UserOrgLink.objects.filter(user_id=obj.id)
+        data = {
+            'college':[],
+            'school':[]
+        }
+        for org in assigned_orgs:
+            if org.org_id.org_type == 'college':
+                data['college'].append({
+                    'org_id': org.org_id.id,
+                    'title':org.org_id.title,
+                    'code':org.org_id.code,
+                    'visited':org.visited,
+                    'pta':org.pta,
+                    'alumni':org.alumni,
+                    'association':org.association,
+                    'whatsapp':org.whatsapp,
+                    'participants':org.participants,
+                    'visited_at':org.visited_at,
+
+                })
+            elif org.org_id.org_type == 'school':
+                data['school'].append({
+                    'org_id': org.org_id.id,
+                    'title':org.org_id.title,
+                    'code':org.org_id.code,
+                    'visited':org.visited,
+                    'pta':org.pta,
+                    'alumni':org.alumni,
+                    'association':org.association,
+                    'whatsapp':org.whatsapp,
+                    'participants':org.participants,
+                    'visited_at':org.visited_at,
+                    
+                })
+        return data
