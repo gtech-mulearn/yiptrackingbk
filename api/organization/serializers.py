@@ -5,9 +5,9 @@ from utils.utils import DateTimeUtils
 class OrganizationSerializer(serializers.ModelSerializer):
     org_id = serializers.CharField(source='id', read_only=True)
     updated_by = serializers.CharField( read_only=True)
-
+    created_by = serializers.CharField( read_only=True)
     def create(self, validated_data):
-        validated_data['updated_by'] = validated_data['created_by']
+        validated_data['updated_by'] = validated_data['created_by'] = User.objects.filter(id=self.context.get('user_id')).first()
         return super().create(validated_data)
     
     class Meta:

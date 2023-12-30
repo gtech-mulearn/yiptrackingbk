@@ -48,7 +48,7 @@ class UserSerializer(serializers.ModelSerializer):
     def get_assigned(self, obj):
         assigned_orgs = UserOrgLink.objects.filter(user_id=obj.id,visited=False)
         return [{
-            'org_id': org.org_id,
+            'org_id': org.org_id.id,
             'name':org.org_id.title,
             'code':org.org_id.code,
         } for org in assigned_orgs]

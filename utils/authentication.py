@@ -62,16 +62,19 @@ class JWTUtils:
 
     @staticmethod
     def fetch_user_id(request):
-        token = authentication.get_authorization_header(request).decode("utf-8").split()
-        payload = jwt.decode(
-            token[1], settings.SECRET_KEY, algorithms=["HS256"], verify=True
-        )
-        user_id = payload.get("id")
-        if user_id is None:
-            raise Exception(
-                "The corresponding JWT token does not contain the 'user_id' key"
+        try:
+            token = authentication.get_authorization_header(request).decode("utf-8").split()
+            payload = jwt.decode(
+                token[1], settings.SECRET_KEY, algorithms=["HS256"], verify=True
             )
-        return user_id
+            user_id = payload.get("id")
+            if user_id is None:
+                raise Exception(
+                    "The corresponding JWT token does not contain the 'user_id' key"
+                )
+            return user_id
+        except:
+            return None
 
     @staticmethod
     def fetch_email(request):

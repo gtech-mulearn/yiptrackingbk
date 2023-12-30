@@ -19,7 +19,10 @@ class OrganizationAPI(APIView):
         return CustomResponse().paginated_response(serializer.data, paginated_queryset.get('pagination'))
     
     def post(self, request):
-        serializer = OrganizationSerializer(data=request.data)
+        user_id = JWTUtils.fetch_user_id(request)
+        if not user_id:
+            return CustomResponse(general_message='Unauthorized').get_failure_response()
+        serializer = OrganizationSerializer(data=request.data, context={'user_id':user_id})
         if serializer.is_valid():
             serializer.save()
             return CustomResponse(general_message='Organziation created successfully').get_success_response()
@@ -39,7 +42,7 @@ class AssignOrganizationAPI(APIView):
         return CustomResponse(message=serializer.errors).get_failure_response()
 
 class OrgVisitedAPI(APIView):
-    
+
     def post(self,request):
         if not JWTUtils.is_jwt_authenticated(request):
             return CustomResponse(general_message='Unauthorized').get_failure_response()

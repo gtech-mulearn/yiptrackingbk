@@ -62,7 +62,7 @@ class Zone(models.Model):
 class Organization(models.Model):
     id = models.CharField(primary_key=True, max_length=36, unique=True, null=False, blank=False, default=uuid.uuid4)
     title = models.CharField(max_length=100, null=False, blank=False)
-    code = models.CharField(max_length=12, null=False, blank=False)
+    code = models.CharField(max_length=12, null=False, blank=False,unique=True)
     org_type = models.CharField(max_length=25, null=False, blank=False)
     district_id = models.ForeignKey('District', on_delete=models.CASCADE, null=True, blank=False,
                                     related_name='org_district_id', db_column='district_id')
