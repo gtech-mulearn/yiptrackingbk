@@ -1,5 +1,85 @@
 import datetime, pytz
 from datetime import timedelta
+from django.db.models.query import QuerySet
+from django.http import HttpResponse
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db.models import Q
+import csv, gzip
+
+class CommonUtils:
+    @staticmethod
+    def get_paginated_queryset(
+        queryset: QuerySet,
+        request,
+        search_fields,
+        sort_fields: dict = None,
+        is_pagination: bool = True,
+    ) -> QuerySet:
+        if sort_fields is None:
+            sort_fields = {}
+
+        page = int(request.query_params.get("pageIndex", 1))
+        per_page = int(request.query_params.get("perPage", 10))
+        search_query = request.query_params.get("search")
+        sort_by = request.query_params.get("sortBy")
+
+        if search_query:
+            query = Q()
+            for field in search_fields:
+                query |= Q(**{f"{field}__icontains": search_query})
+
+            queryset = queryset.filter(query)
+
+        if sort_by:
+            sort = sort_by[1:] if sort_by.startswith("-") else sort_by
+            if sort_field_name := sort_fields.get(sort):
+                if sort_by.startswith("-"):
+                    sort_field_name = f"-{sort_field_name}"
+
+                queryset = queryset.order_by(sort_field_name)
+        if is_pagination:
+            paginator = Paginator(queryset, per_page)
+            try:
+                queryset = paginator.page(page)
+            except PageNotAnInteger:
+                queryset = paginator.page(1)
+            except EmptyPage:
+                queryset = paginator.page(paginator.num_pages)
+
+            return {
+                "queryset": queryset,
+                "pagination": {
+                    "count": paginator.count,
+                    "totalPages": paginator.num_pages,
+                    "isNext": queryset.has_next(),
+                    "isPrev": queryset.has_previous(),
+                    "nextPage": queryset.next_page_number()
+                    if queryset.has_next()
+                    else None,
+                },
+            }
+
+        return queryset
+
+    @staticmethod
+    def generate_csv(queryset: QuerySet, csv_name: str) -> HttpResponse:
+        response = HttpResponse(content_type="text/csv")
+        response["Content-Disposition"] = f'attachment; filename="{csv_name}.csv"'
+        fieldnames = list(queryset[0].keys())
+        writer = csv.DictWriter(response, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(queryset)
+
+        compressed_response = HttpResponse(
+            gzip.compress(response.content),
+            content_type="text/csv",
+        )
+        compressed_response[
+            "Content-Disposition"
+        ] = f'attachment; filename="{csv_name}.csv"'
+        compressed_response["Content-Encoding"] = "gzip"
+
+        return compressed_response
 
 
 class DateTimeUtils:

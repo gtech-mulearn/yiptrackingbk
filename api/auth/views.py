@@ -12,9 +12,21 @@ from rest_framework.views import APIView
 
 from utils.response import CustomResponse
 from utils.authentication import generate_jwt, JWTUtils
-from utils.utils import DateTimeUtils
+from utils.utils import DateTimeUtils, CommonUtils
 from db.models import User
 
+class UserListAPI(views.APIView):
+    def get(self, request):
+        users = User.objects.all()
+        paginated_queryset = CommonUtils.get_paginated_queryset(
+            queryset=users,
+            request=request,
+            search_fields=['first_name', 'last_name', 'email', 'mobile'],
+            sort_fields={'first_name': 'first_name', 'last_name': 'last_name', 'email': 'email', 'mobile': 'mobile','created_at':'created_at','updated_at':'updated_at'},
+            is_pagination=True
+        )
+        serializer = UserSerializer(instance=paginated_queryset.get('queryset'), many=True)
+        return CustomResponse().paginated_response(serializer.data, paginated_queryset.get('pagination'))
 
 class UserRegisterAPI(views.APIView):
     def get(self, request):

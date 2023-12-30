@@ -48,7 +48,7 @@ CREATE TABLE user_org_link
     participants BIGINT  DEFAULT 0,
     created_by   VARCHAR(36)             NOT NULL,
     created_at   DATETIME                NOT NULL,
-    visited_at   DATETIME                NOT NULL,
+    visited_at   DATETIME,
     CONSTRAINT fk_user_org_link_ref_user_id FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE,
     CONSTRAINT fk_user_org_link_ref_org_id FOREIGN KEY (org_id) REFERENCES organization (id) ON DELETE CASCADE,
     CONSTRAINT fk_user_org_link_ref_created_by FOREIGN KEY (created_by) REFERENCES user (id) ON DELETE CASCADE

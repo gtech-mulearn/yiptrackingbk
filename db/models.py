@@ -62,7 +62,7 @@ class Zone(models.Model):
 class Organization(models.Model):
     id = models.CharField(primary_key=True, max_length=36, unique=True, null=False, blank=False, default=uuid.uuid4)
     title = models.CharField(max_length=100, null=False, blank=False)
-    code = models.CharField(max_length=12, null=False, blank=False)
+    code = models.CharField(max_length=12, null=False, blank=False,unique=True)
     org_type = models.CharField(max_length=25, null=False, blank=False)
     district_id = models.ForeignKey('District', on_delete=models.CASCADE, null=True, blank=False,
                                     related_name='org_district_id', db_column='district_id')
@@ -86,16 +86,14 @@ class UserOrgLink(models.Model):
                                related_name='user_org_link_org_id', db_column='org_id')
     visited = models.BooleanField(null=False, blank=False, default=False)
     pta = models.CharField(max_length=255, null=True, blank=False)
-    alumini = models.CharField(max_length=255, null=True, blank=False)
+    alumni = models.CharField(max_length=255, null=True, blank=False)
     association = models.CharField(max_length=255, null=True, blank=False)
     whatsapp = models.CharField(max_length=255, null=True, blank=False)
     participants = models.BigIntegerField(null=False, blank=False, default=0)
     created_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey('User', on_delete=models.CASCADE, null=False, blank=False,
                                    related_name='user_org_link_created_by', db_column='created_by')
-    updated_at = models.DateTimeField(auto_now=True)
-    updated_by = models.ForeignKey('User', on_delete=models.CASCADE, null=False, blank=False,
-                                   related_name='user_org_link_updated_by', db_column='updated_by')
+    visited_at = models.DateTimeField(null=True, blank=False)
 
     class Meta:
         managed = False

@@ -16,20 +16,19 @@ INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.staticfiles',
-    'rest_framework',
-    'rest_framework.authtoken',
     'corsheaders',
+    'rest_framework',
     'api',
     'db'
 ]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-     'corsheaders.middleware.CorsMiddleware',
-     'yiptracking.middlewares.UniversalErrorHandlerMiddleware'
+    "django.middleware.security.SecurityMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "yiptracking.middlewares.UniversalErrorHandlerMiddleware",
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
