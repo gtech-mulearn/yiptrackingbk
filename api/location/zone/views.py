@@ -3,7 +3,11 @@ from .serializers import ZoneSerializer
 from utils.response import CustomResponse
 from db.models import Zone
 from utils.utils import CommonUtils
+from utils.authentication import role_required
+from utils.types import Role
+
 class ZoneAPI(APIView):
+    
     def get(self, request):
         zones = Zone.objects.all()
         paginated_queryset = CommonUtils.get_paginated_queryset(
@@ -15,6 +19,7 @@ class ZoneAPI(APIView):
         )
         serializer = ZoneSerializer(paginated_queryset.get('queryset'), many=True)
         return CustomResponse().paginated_response(serializer.data, paginated_queryset.get('pagination'))
+    
     def post(self, request):
         serializer = ZoneSerializer(data=request.data)
         if serializer.is_valid():
