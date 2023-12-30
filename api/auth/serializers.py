@@ -41,7 +41,6 @@ class UserSerializer(serializers.ModelSerializer):
             'created_by'
         ]
 
-
 # class UserUpdateSerializer(serializers.ModelSerializer):
 #     def update(self, instance, validated_data):
 #         instance.first_name = validated_data.get('first_name', instance.first_name)
