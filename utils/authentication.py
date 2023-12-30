@@ -12,6 +12,8 @@ import decouple, pytz
 from yiptracking.settings import SECRET_KEY
 from .exceptions import UnauthorizedAccessException
 from .utils import DateTimeUtils
+from .response import CustomResponse
+from .types import Role
 
 User = get_user_model()
 
@@ -60,16 +62,19 @@ class JWTUtils:
 
     @staticmethod
     def fetch_user_id(request):
-        token = authentication.get_authorization_header(request).decode("utf-8").split()
-        payload = jwt.decode(
-            token[1], settings.SECRET_KEY, algorithms=["HS256"], verify=True
-        )
-        user_id = payload.get("id")
-        if user_id is None:
-            raise Exception(
-                "The corresponding JWT token does not contain the 'user_id' key"
+        try:
+            token = authentication.get_authorization_header(request).decode("utf-8").split()
+            payload = jwt.decode(
+                token[1], settings.SECRET_KEY, algorithms=["HS256"], verify=True
             )
-        return user_id
+            user_id = payload.get("id")
+            if user_id is None:
+                raise Exception(
+                    "The corresponding JWT token does not contain the 'user_id' key"
+                )
+            return user_id
+        except:
+            return None
 
     @staticmethod
     def fetch_email(request):
@@ -83,6 +88,19 @@ class JWTUtils:
                 "The corresponding JWT token does not contain the 'email' key"
             )
         return email
+
+    @staticmethod
+    def fetch_role(request):
+        token = authentication.get_authorization_header(request).decode("utf-8").split()
+        payload = jwt.decode(
+            token[1], settings.SECRET_KEY, algorithms=["HS256"], verify=True
+        )
+        role = payload.get("role")
+        if role is None:
+            raise Exception(
+                "The corresponding JWT token does not contain the 'role' key"
+            )
+        return role
 
     @staticmethod
     def is_jwt_authenticated(request):
@@ -142,60 +160,22 @@ class JWTUtils:
             return False
 
 
-class JWTAuthentication(authentication.BaseAuthentication):
-    def authenticate(self, request):
-        # Extract the JWT from the Authorization header
-        jwt_token = request.META.get('HTTP_AUTHORIZATION')
-        if jwt_token is None:
-            return None
+def role_required(roles):
+    def decorator(view_func):
+        def wrapped_view_func(obj, request, *args, **kwargs):
+            roles = JWTUtils.fetch_role(request) 
+            roles = roles if roles else []
+            for role in roles:
+                if role in roles:
+                    response = view_func(obj, request, *args, **kwargs)
+                    return response
+            res = CustomResponse(
+                general_message="You do not have the required role to access this page."
+            ).get_failure_response()
+            return res
 
-        jwt_token = JWTAuthentication.get_the_token_from_header(jwt_token)  # clean the token
-
-        # Decode the JWT and verify its signature
-        try:
-            payload = jwt.decode(jwt_token, settings.SECRET_KEY, algorithms=['HS256'])
-        except jwt.exceptions.InvalidSignatureError:
-            raise AuthenticationFailed('Invalid signature')
-        except:
-            raise ParseError()
-
-        # Get the user from the database
-        username_or_phone_number = payload.get('user_identifier')
-        if username_or_phone_number is None:
-            raise AuthenticationFailed('User identifier not found in JWT')
-
-        user = User.objects.filter(username=username_or_phone_number).first()
-        if user is None:
-            raise AuthenticationFailed('User not found')
-
-        # Return the user and token payload
-        return user, payload
-
-    def authenticate_header(self, request):
-        return 'Bearer'
-
-    @classmethod
-    def create_jwt(cls, user):
-        # Create the JWT payload
-        payload = {
-            'user_identifier': user.username,
-            'exp': int((datetime.now() + timedelta(hours=settings.JWT_CONF['TOKEN_LIFETIME_HOURS'])).timestamp()),
-            # set the expiration time for 5 hour from now
-            'iat': datetime.now().timestamp(),
-            'username': user.username,
-            'email': user.email
-        }
-
-        # Encode the JWT with your secret key
-        jwt_token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
-
-        return jwt_token
-
-    @classmethod
-    def get_the_token_from_header(cls, token):
-        token = token.replace('Bearer', '').replace(' ', '')  # clean the token
-        return token
-
+        return wrapped_view_func
+    return decorator
 
 def string_to_date_time(dt_str):
     return datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S%z")
@@ -206,12 +186,22 @@ def generate_jwt(user):
     access_expiry = str(DateTimeUtils.format_time(access_expiry_time))
 
     access_token = jwt.encode(
-        {'id': user.id, 'email': user.email, 'expiry': access_expiry, 'tokenType': 'access'},
+        {
+            'id': user.id, 
+            'email': user.email, 
+            'role':user.role if user.role else '',
+            'expiry': access_expiry, 
+            'tokenType': 'access'
+        },
         decouple.config('SECRET_KEY'),
         algorithm="HS256")
 
     refresh_token = jwt.encode(
-        {'id': user.id, 'email': user.email, 'tokenType': 'refresh'},
+        {
+            'id': user.id, 
+            'email': user.email, 
+            'tokenType': 'refresh'
+        },
         decouple.config('SECRET_KEY'),
         algorithm="HS256")
     return access_token, refresh_token
@@ -222,12 +212,22 @@ def generate_access_token(user):
     access_expiry = str(DateTimeUtils.format_time(access_expiry_time))
 
     access_token = jwt.encode(
-        {'id': user.id, 'email': user.email, 'expiry': access_expiry, 'tokenType': 'access'},
+        {
+            'id': user.id,
+            'email': user.email, 
+            'role':user.role,
+            'expiry': access_expiry, 
+            'tokenType': 'access'
+        },
         decouple.config('SECRET_KEY'),
         algorithm="HS256")
 
     refresh_token = jwt.encode(
-        {'id': user.id, 'email': user.email, 'tokenType': 'refresh'},
+        {
+            'id': user.id, 
+            'email': user.email, 
+            'tokenType': 'refresh'
+        },
         decouple.config('SECRET_KEY'),
         algorithm="HS256")
     return access_token, refresh_token

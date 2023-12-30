@@ -14,10 +14,7 @@ CREATE TABLE user
     updated_by  VARCHAR(36)             NOT NULL,
     updated_at  DATETIME                NOT NULL,
     created_by  VARCHAR(36)             NOT NULL,
-    created_at  DATETIME                NOT NULL,
-
-    CONSTRAINT fk_user_ref_org_id FOREIGN KEY (org_id) REFERENCES organization (id) ON DELETE CASCADE,
-    CONSTRAINT fk_user_ref_district_id FOREIGN KEY (district_id) REFERENCES district (id) ON DELETE CASCADE
+    created_at  DATETIME                NOT NULL
 );
 
 
@@ -51,7 +48,7 @@ CREATE TABLE user_org_link
     participants BIGINT  DEFAULT 0,
     created_by   VARCHAR(36)             NOT NULL,
     created_at   DATETIME                NOT NULL,
-    visited_at   DATETIME                NOT NULL,
+    visited_at   DATETIME,
     CONSTRAINT fk_user_org_link_ref_user_id FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE,
     CONSTRAINT fk_user_org_link_ref_org_id FOREIGN KEY (org_id) REFERENCES organization (id) ON DELETE CASCADE,
     CONSTRAINT fk_user_org_link_ref_created_by FOREIGN KEY (created_by) REFERENCES user (id) ON DELETE CASCADE
@@ -84,3 +81,7 @@ CREATE TABLE district
     CONSTRAINT fk_district_ref_updated_by FOREIGN KEY (updated_by) REFERENCES user (id) ON DELETE CASCADE,
     CONSTRAINT fk_district_ref_created_by FOREIGN KEY (created_by) REFERENCES user (id) ON DELETE CASCADE
 );
+
+ALTER TABLE user
+ADD CONSTRAINT fk_user_ref_org_id FOREIGN KEY (org_id) REFERENCES organization (id) ON DELETE CASCADE,
+ADD CONSTRAINT fk_user_ref_district_id FOREIGN KEY (district_id) REFERENCES district (id) ON DELETE CASCADE;
