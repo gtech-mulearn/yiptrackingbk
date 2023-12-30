@@ -2,7 +2,7 @@ from rest_framework import serializers
 from db.models import User
 from django.contrib.auth.hashers import make_password
 from db.models import UserOrgLink, Organization, District, Zone
-
+from utils.types import OrgType
 class UserSerializer(serializers.ModelSerializer):
     user_id = serializers.CharField(source='id', read_only=True)
     password = serializers.CharField(write_only=True)
@@ -50,7 +50,7 @@ class UserSerializer(serializers.ModelSerializer):
             'school':[]
         }
         for org in assigned_orgs:
-            if org.org_id.org_type == 'college':
+            if org.org_id.org_type == OrgType.COLLEGE.value:
                 data['college'].append({
                     'org_id': org.org_id.id,
                     'title':org.org_id.title,
@@ -64,7 +64,7 @@ class UserSerializer(serializers.ModelSerializer):
                     'visited_at':org.visited_at,
 
                 })
-            elif org.org_id.org_type == 'school':
+            elif org.org_id.org_type == OrgType.SCHOOL.value:
                 data['school'].append({
                     'org_id': org.org_id.id,
                     'title':org.org_id.title,
@@ -76,6 +76,6 @@ class UserSerializer(serializers.ModelSerializer):
                     'whatsapp':org.whatsapp,
                     'participants':org.participants,
                     'visited_at':org.visited_at,
-                    
+
                 })
         return data

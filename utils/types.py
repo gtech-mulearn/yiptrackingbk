@@ -13,3 +13,7 @@ class Role(Enum):
     def get_role(cls, role):
         vals =  [key.value for key in cls if key.value == role]
         return vals[0] if len(vals) == 1 else None
+
+class OrgType(Enum):
+    COLLEGE = 'College'
+    SCHOOL = 'School'
