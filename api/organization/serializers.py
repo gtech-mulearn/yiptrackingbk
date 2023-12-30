@@ -16,6 +16,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
             'org_id',
             'title',
             'code',
+            'org_type',
             'district_id',
             'updated_by',
             'updated_at',
