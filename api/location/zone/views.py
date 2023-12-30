@@ -10,7 +10,7 @@ class ZoneAPI(APIView):
             zones,
             request,
             search_fields=['name'],
-            sort_fields=['name','created_at','updated_at'],
+            sort_fields={'name':'name','created_at':'created_at','updated_at':'updated_at'},
             is_pagination=True
         )
         serializer = ZoneSerializer(paginated_queryset.get('queryset'), many=True)
