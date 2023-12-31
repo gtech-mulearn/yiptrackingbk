@@ -5,7 +5,6 @@ from utils.utils import CommonUtils
 from db.models import Organization, UserOrgLink
 from utils.authentication import JWTUtils
 
-
 class OrganizationListAPI(APIView):
 
         def get(self, request):
@@ -19,7 +18,6 @@ class OrganizationListAPI(APIView):
                 serializer = OrganizationSerializer(organizations, many=True)
             else:
                 return CustomResponse(general_message='Invalid Request').get_failure_response()
-            print(serializer.data)
             return CustomResponse(response=serializer.data).get_success_response()
 
 class OrganizationAPI(APIView):
