@@ -85,15 +85,15 @@ class UserOrgLink(models.Model):
     org_id = models.ForeignKey('Organization', on_delete=models.CASCADE, null=False, blank=False,
                                related_name='user_org_link_org_id', db_column='org_id')
     visited = models.BooleanField(null=False, blank=False, default=False)
-    pta = models.CharField(max_length=255, null=True, blank=False)
-    alumni = models.CharField(max_length=255, null=True, blank=False)
-    association = models.CharField(max_length=255, null=True, blank=False)
-    whatsapp = models.CharField(max_length=255, null=True, blank=False)
-    participants = models.BigIntegerField(null=False, blank=False, default=0)
+    pta = models.CharField(max_length=255, null=True, blank=True)
+    alumni = models.CharField(max_length=255, null=True, blank=True)
+    association = models.CharField(max_length=255, null=True, blank=True)
+    whatsapp = models.CharField(max_length=255, null=True, blank=True)
+    participants = models.BigIntegerField(null=False, blank=True, default=0)
     created_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey('User', on_delete=models.CASCADE, null=False, blank=False,
                                    related_name='user_org_link_created_by', db_column='created_by')
-    visited_at = models.DateTimeField(null=True, blank=False)
+    visited_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         managed = False

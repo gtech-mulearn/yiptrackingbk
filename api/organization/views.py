@@ -5,6 +5,20 @@ from utils.utils import CommonUtils
 from db.models import Organization, UserOrgLink
 from utils.authentication import JWTUtils
 
+class OrganizationListAPI(APIView):
+
+        def get(self, request):
+            org_type = request.query_params.get('org_type')
+            org_code = request.query_params.get('code')
+            if org_code:
+                organizations = Organization.objects.filter(code=org_code).first()
+                serializer = OrganizationSerializer(organizations, many=False)
+            elif org_type:
+                organizations = Organization.objects.filter(org_type=org_type)
+                serializer = OrganizationSerializer(organizations, many=True)
+            else:
+                return CustomResponse(general_message='Invalid Request').get_failure_response()
+            return CustomResponse(response=serializer.data).get_success_response()
 
 class OrganizationAPI(APIView):
 

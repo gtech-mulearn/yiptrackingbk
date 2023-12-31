@@ -3,6 +3,7 @@ from db.models import User
 from django.contrib.auth.hashers import make_password
 from db.models import UserOrgLink, Organization, District, Zone
 from utils.types import OrgType
+from utils.utils import DateTimeUtils
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -26,6 +27,14 @@ class UserSerializer(serializers.ModelSerializer):
         instance.last_name = validated_data.get('last_name', instance.last_name)
         instance.email = validated_data.get('email', instance.email)
         instance.password = validated_data.get('password', instance.password)
+        instance.mobile = validated_data.get('mobile', instance.mobile)
+        instance.gender = validated_data.get('gender',instance.gender)
+        instance.dob = validated_data.get('dob',instance.dob)
+        instance.district_id = validated_data.get('district_id',instance.district_id)
+        instance.org_id = validated_data.get('org_id',instance.org_id)
+        instance.role = validated_data.get('role',instance.role)
+        instance.updated_by = User.objects.get(id=self.context.get('user_id'))
+        instance.updated_at = DateTimeUtils.get_current_datetime()
         instance.save()
         return instance
 
