@@ -73,7 +73,8 @@ class UserAuthenticationAPI(APIView):
             if user.password and check_password(password, user.password):
                 access_token, refresh_token = generate_jwt(user)
                 return CustomResponse(
-                    response={'accessToken': access_token, 'refreshToken': refresh_token}).get_success_response()
+                    response={'accessToken': access_token, 'refreshToken': refresh_token,
+                              'roles': user.role}).get_success_response()
             else:
                 return CustomResponse(general_message="Invalid password").get_failure_response()
         else:
