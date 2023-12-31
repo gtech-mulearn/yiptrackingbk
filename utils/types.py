@@ -1,9 +1,10 @@
 from enum import Enum
 
 class Role(Enum):
-    ADMIN = 'admin'
-    INTERN = 'intern'
-    DC = 'dc'
+    ADMIN = 'Admin'
+    INTERN = 'Intern'
+    DISTRICT_COORDINATOR = 'District Coordinator'
+    ZONE_COORDINATOR = 'Zone Coordinator'
 
     @classmethod
     def choices(cls):

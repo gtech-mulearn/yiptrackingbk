@@ -48,16 +48,16 @@ class UserRegisterAPI(views.APIView):
         serializer.save()
         return CustomResponse(general_message='User created successfully').get_success_response()
 
-    # def put(self, request:HttpRequest ):
-    #     instance = User.objects.filter(username=request.POST.get('email',None)).first()
-    #     if instance == None:
-    #         return CustomResponse(general_message='User not found').get_failure_response()
-    #     serializer = UserSerializer(instance=instance,data=request.data) 
-    #     if serializer.is_valid():  
-    #         serializer.update() 
-    #         return CustomResponse(general_message='User updated successfully',message=serializer.data).get_success_response()
-    #     else:  
-    #         return CustomResponse(general_message="Invalid data!",message=serializer.data)
+    def put(self, request:HttpRequest ):
+        instance = User.objects.filter(username=request.data.get('email')).first()
+        if instance == None:
+            return CustomResponse(general_message='User not found').get_failure_response()
+        serializer = UserSerializer(instance=instance,data=request.data,partial=True)
+        if serializer.is_valid():  
+            serializer.save() 
+            return CustomResponse(general_message='User updated successfully',message=serializer.data).get_success_response()
+        else:  
+            return CustomResponse(general_message="Invalid data!",message=serializer.data)
 
 
 class UserAuthenticationAPI(APIView):
