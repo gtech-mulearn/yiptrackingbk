@@ -22,7 +22,6 @@ class CommonUtils:
         per_page = int(request.query_params.get("perPage", 10))
         search_query = request.query_params.get("search")
         sort_by = request.query_params.get("sortBy")
-
         if search_query:
             query = Q()
             for field in search_fields:
