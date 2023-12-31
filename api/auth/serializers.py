@@ -5,14 +5,15 @@ from db.models import UserOrgLink, Organization, District, Zone
 from utils.types import OrgType
 from utils.utils import DateTimeUtils
 
+
 class UserSerializer(serializers.ModelSerializer):
     user_id = serializers.CharField(source='id', read_only=True)
     password = serializers.CharField(write_only=True)
     assigned = serializers.SerializerMethodField(method_name='get_assigned')
-    district_name = serializers.CharField(source='district_id.name', read_only=True,default=None)
-    org_name = serializers.CharField(source='org_id.title', read_only=True,default=None)
-    zone_id = serializers.CharField(source='district_id.zone_id.id', read_only=True,default=None)
-    zone_name = serializers.CharField(source='district_id.zone_id.name', read_only=True,default=None)
+    district_name = serializers.CharField(source='district_id.name', read_only=True, default=None)
+    org_name = serializers.CharField(source='org_id.title', read_only=True, default=None)
+    zone_id = serializers.CharField(source='district_id.zone_id.id', read_only=True, default=None)
+    zone_name = serializers.CharField(source='district_id.zone_id.name', read_only=True, default=None)
 
     def create(self, validated_data):
         password = validated_data.pop("password")
@@ -60,46 +61,46 @@ class UserSerializer(serializers.ModelSerializer):
             'created_at',
             'created_by'
         ]
-    
+
     def get_assigned(self, obj):
         assigned_orgs = UserOrgLink.objects.filter(user_id=obj.id)
         data = {
-            'college':[],
-            'school':[]
+            'college': [],
+            'school': []
         }
         for org in assigned_orgs:
             if org.org_id.org_type == OrgType.COLLEGE.value:
                 data['college'].append({
                     'org_id': org.org_id.id,
-                    'title':org.org_id.title,
-                    'code':org.org_id.code,
-                    'visited':org.visited,
-                    'pta':org.pta,
-                    'alumni':org.alumni,
-                    'association':org.association,
-                    'whatsapp':org.whatsapp,
-                    'participants':org.participants,
-                    'visited_at':org.visited_at,
-                    'district_id':org.org_id.district_id.id,
-                    'district_name':org.org_id.district_id.name,
-                    'zone_id':org.org_id.district_id.zone_id.id,
-                    'zone_name':org.org_id.district_id.zone_id.name,
+                    'title': org.org_id.title,
+                    'code': org.org_id.code,
+                    'visited': org.visited,
+                    'pta': org.pta,
+                    'alumni': org.alumni,
+                    'association': org.association,
+                    'whatsapp': org.whatsapp,
+                    'participants': org.participants,
+                    'visited_at': org.visited_at,
+                    'district_id': org.org_id.district_id.id,
+                    'district_name': org.org_id.district_id.name,
+                    'zone_id': org.org_id.district_id.zone_id.id,
+                    'zone_name': org.org_id.district_id.zone_id.name,
                 })
             elif org.org_id.org_type == OrgType.SCHOOL.value:
                 data['school'].append({
                     'org_id': org.org_id.id,
-                    'title':org.org_id.title,
-                    'code':org.org_id.code,
-                    'visited':org.visited,
-                    'pta':org.pta,
-                    'alumni':org.alumni,
-                    'association':org.association,
-                    'whatsapp':org.whatsapp,
-                    'participants':org.participants,
-                    'visited_at':org.visited_at,
-                    'district_id':org.org_id.district_id.id,
-                    'district_name':org.org_id.district_id.name,
-                    'zone_id':org.org_id.district_id.zone_id.id,
-                    'zone_name':org.org_id.district_id.zone_id.name,
+                    'title': org.org_id.title,
+                    'code': org.org_id.code,
+                    'visited': org.visited,
+                    'pta': org.pta,
+                    'alumni': org.alumni,
+                    'association': org.association,
+                    'whatsapp': org.whatsapp,
+                    'participants': org.participants,
+                    'visited_at': org.visited_at,
+                    'district_id': org.org_id.district_id.id,
+                    'district_name': org.org_id.district_id.name,
+                    'zone_id': org.org_id.district_id.zone_id.id,
+                    'zone_name': org.org_id.district_id.zone_id.name,
                 })
         return data
