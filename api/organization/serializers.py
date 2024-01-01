@@ -76,6 +76,9 @@ class UserOrgAssignSerializer(serializers.ModelSerializer):
                 'org_id': Organization.objects.filter(id=org_id).first(),
                 'created_by': created_by_user
             }
+            if UserOrgLink.objects.filter(user_id=user, org_id=org_id).exists():
+                raise serializers.ValidationError("User is already assigned to this organization")
+
             user_org_link = UserOrgLink.objects.create(**user_org_link_data)
             user_org_links.append(user_org_link)
 
