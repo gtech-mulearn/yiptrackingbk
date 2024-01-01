@@ -38,12 +38,16 @@ class UserListAPI(views.APIView):
 
 class UserRegisterAPI(views.APIView):
     def get(self, request):
-        if not JWTUtils.is_jwt_authenticated(request):
+        if not JWTUtils.is_jwt_authenticated(request) and not email:
             return CustomResponse(general_message="Not logged in!").get_failure_response()
-        user_id = JWTUtils.fetch_user_id(request)
-        if not user_id:
-            return CustomResponse(general_message="Invalid token").get_success_response()
-        user = User.objects.filter(id=user_id).first()
+        email = request.query_params.get('email')
+        if email:
+            user = User.objects.filter(email=email).first()
+        else:
+            user_id = JWTUtils.fetch_user_id(request)
+            if not user_id:
+                return CustomResponse(general_message="Invalid token").get_success_response()
+            user = User.objects.filter(id=user_id).first()
         if not user:
             return CustomResponse(general_message="Invalid user").get_success_response()
         serializer = UserSerializer(instance=user, many=False)
