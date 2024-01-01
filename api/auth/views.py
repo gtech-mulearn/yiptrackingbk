@@ -20,7 +20,7 @@ class UserListAPI(views.APIView):
     def get(self, request):
         users = User.objects.all()
         serializer = UserSerializer(instance=users, many=True)
-        return CustomResponse(message=serializer.data).get_success_response()
+        return CustomResponse(response=serializer.data).get_success_response()
 
 
 class UserRegisterAPI(views.APIView):
