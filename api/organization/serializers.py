@@ -3,27 +3,13 @@ from db.models import Organization, UserOrgLink, User
 
 
 class OrganizationSerializer(serializers.ModelSerializer):
-    org_id = serializers.CharField(source='id', read_only=True)
-    updated_by = serializers.CharField(read_only=True)
-    created_by = serializers.CharField(read_only=True)
     name = serializers.SerializerMethodField()
-
-    def create(self, validated_data):
-        validated_data['updated_by'] = validated_data['created_by'] = User.objects.filter(
-            id=self.context.get('user_id')).first()
-        return super().create(validated_data)
 
     class Meta:
         model = Organization
         fields = [
-            'org_id',
+            'id',
             'name',
-            'org_type',
-            'district_id',
-            'updated_by',
-            'updated_at',
-            'created_at',
-            'created_by'
         ]
 
     def get_name(self, obj):
