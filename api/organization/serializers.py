@@ -6,6 +6,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
     org_id = serializers.CharField(source='id', read_only=True)
     updated_by = serializers.CharField(read_only=True)
     created_by = serializers.CharField(read_only=True)
+    name = serializers.SerializerMethodField()
 
     def create(self, validated_data):
         validated_data['updated_by'] = validated_data['created_by'] = User.objects.filter(
@@ -16,8 +17,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
         model = Organization
         fields = [
             'org_id',
-            'title',
-            'code',
+            'name',
             'org_type',
             'district_id',
             'updated_by',
@@ -25,6 +25,9 @@ class OrganizationSerializer(serializers.ModelSerializer):
             'created_at',
             'created_by'
         ]
+
+    def get_name(self, obj):
+        return f"{obj.code} - {obj.title}"
 
 
 class UserOrgVisitSerializer(serializers.ModelSerializer):
