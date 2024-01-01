@@ -38,12 +38,16 @@ class UserListAPI(views.APIView):
 
 class UserRegisterAPI(views.APIView):
     def get(self, request):
-        if not JWTUtils.is_jwt_authenticated(request):
+        if not JWTUtils.is_jwt_authenticated(request) and not email:
             return CustomResponse(general_message="Not logged in!").get_failure_response()
-        user_id = JWTUtils.fetch_user_id(request)
-        if not user_id:
-            return CustomResponse(general_message="Invalid token").get_success_response()
-        user = User.objects.filter(id=user_id).first()
+        email = request.query_params.get('email')
+        if email:
+            user = User.objects.filter(email=email).first()
+        else:
+            user_id = JWTUtils.fetch_user_id(request)
+            if not user_id:
+                return CustomResponse(general_message="Invalid token").get_success_response()
+            user = User.objects.filter(id=user_id).first()
         if not user:
             return CustomResponse(general_message="Invalid user").get_success_response()
         serializer = UserSerializer(instance=user, many=False)
@@ -57,14 +61,19 @@ class UserRegisterAPI(views.APIView):
         return CustomResponse(general_message='User created successfully').get_success_response()
 
     def put(self, request:HttpRequest ):
-        instance = User.objects.filter(username=request.data.get('email')).first()
+        user_id = JWTUtils.fetch_user_id(request)
+        if not user_id:
+            return CustomResponse(general_message="Unauthorized").get_failure_response()
+        if not user_id:
+            return CustomResponse(general_message="Invalid Request").get_failure_response()
+        instance = User.objects.filter(id=user_id).first()
         if instance == None:
             return CustomResponse(general_message='User not found').get_failure_response()
-        serializer = UserSerializer(instance=instance,data=request.data,partial=True)
+        serializer = UserSerializer(instance=instance,data=request.data,partial=True,context={'user_id': user_id})
         if serializer.is_valid():  
-            serializer.save() 
-            return CustomResponse(general_message='User updated successfully',message=serializer.data).get_success_response()
-        else:  
+            serializer.save()
+            return CustomResponse(general_message='User updated successfully').get_success_response()
+        else:
             return CustomResponse(general_message="Invalid data!",message=serializer.data)
 
 
