@@ -28,11 +28,11 @@ class UserSerializer(serializers.ModelSerializer):
         instance.email = validated_data.get('email', instance.email)
         instance.password = validated_data.get('password', instance.password)
         instance.mobile = validated_data.get('mobile', instance.mobile)
-        instance.gender = validated_data.get('gender',instance.gender)
-        instance.dob = validated_data.get('dob',instance.dob)
-        instance.district_id = validated_data.get('district_id',instance.district_id)
-        instance.org_id = validated_data.get('org_id',instance.org_id)
-        instance.role = validated_data.get('role',instance.role)
+        instance.gender = validated_data.get('gender', instance.gender)
+        instance.dob = validated_data.get('dob', instance.dob)
+        instance.district_id = validated_data.get('district_id', instance.district_id)
+        instance.org_id = validated_data.get('org_id', instance.org_id)
+        instance.role = validated_data.get('role', instance.role)
         instance.updated_by = User.objects.get(id=self.context.get('user_id'))
         instance.updated_at = DateTimeUtils.get_current_datetime()
         instance.save()
@@ -63,44 +63,33 @@ class UserSerializer(serializers.ModelSerializer):
         ]
 
     def get_assigned(self, obj):
+        def append_org_data(org, org_type):
+            return {
+                'org_id': org.org_id.id,
+                'title': org.org_id.title,
+                'code': org.org_id.code,
+                'visited': org.visited,
+                'pta': org.pta,
+                'alumni': org.alumni,
+                'association': org.association,
+                'whatsapp': org.whatsapp,
+                'participants': org.participants,
+                'visited_at': org.visited_at,
+                'district_id': org.org_id.district_id.id,
+                'district_name': org.org_id.district_id.name,
+                'zone_id': org.org_id.district_id.zone_id.id,
+                'zone_name': org.org_id.district_id.zone_id.name,
+            }
+
         assigned_orgs = UserOrgLink.objects.filter(user_id=obj.id)
+
         data = {
-            'college': [],
-            'school': []
+            'college': [append_org_data(org, OrgType.COLLEGE.value) for org in assigned_orgs if
+                        org.org_id.org_type == OrgType.COLLEGE.value],
+            'school': [append_org_data(org, OrgType.SCHOOL.value) for org in assigned_orgs if
+                       org.org_id.org_type == OrgType.SCHOOL.value],
+            'iti': [append_org_data(org, OrgType.ITI.value) for org in assigned_orgs if
+                    org.org_id.org_type == OrgType.ITI.value]
         }
-        for org in assigned_orgs:
-            if org.org_id.org_type == OrgType.COLLEGE.value:
-                data['college'].append({
-                    'org_id': org.org_id.id,
-                    'title': org.org_id.title,
-                    'code': org.org_id.code,
-                    'visited': org.visited,
-                    'pta': org.pta,
-                    'alumni': org.alumni,
-                    'association': org.association,
-                    'whatsapp': org.whatsapp,
-                    'participants': org.participants,
-                    'visited_at': org.visited_at,
-                    'district_id': org.org_id.district_id.id,
-                    'district_name': org.org_id.district_id.name,
-                    'zone_id': org.org_id.district_id.zone_id.id,
-                    'zone_name': org.org_id.district_id.zone_id.name,
-                })
-            elif org.org_id.org_type == OrgType.SCHOOL.value:
-                data['school'].append({
-                    'org_id': org.org_id.id,
-                    'title': org.org_id.title,
-                    'code': org.org_id.code,
-                    'visited': org.visited,
-                    'pta': org.pta,
-                    'alumni': org.alumni,
-                    'association': org.association,
-                    'whatsapp': org.whatsapp,
-                    'participants': org.participants,
-                    'visited_at': org.visited_at,
-                    'district_id': org.org_id.district_id.id,
-                    'district_name': org.org_id.district_id.name,
-                    'zone_id': org.org_id.district_id.zone_id.id,
-                    'zone_name': org.org_id.district_id.zone_id.name,
-                })
+
         return data
