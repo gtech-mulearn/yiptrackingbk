@@ -9,7 +9,7 @@ import jwt
 from datetime import timedelta
 from django.contrib.auth.hashers import check_password
 from rest_framework.views import APIView
-
+from django.db.models import Q
 from utils.response import CustomResponse
 from utils.authentication import generate_jwt, JWTUtils
 from utils.utils import DateTimeUtils, CommonUtils
@@ -19,6 +19,19 @@ from db.models import User
 class UserListAPI(views.APIView):
     def get(self, request):
         users = User.objects.all()
+        search_query = request.query_params.get("search")
+        if search_query:
+            q1 = Q(first_name__icontains=search_query)
+            q2 = Q(last_name__icontains=search_query)
+            q3 = Q(email__icontains=search_query)
+            users = users.filter(q1 | q2 | q3)
+        # paginated_queryset = CommonUtils.get_paginated_queryset(
+        #     queryset=users,
+        #     request=request,
+        #     search_fields=['first_name', 'last_name', 'email', 'mobile'],
+        #     sort_fields={'first_name': 'first_name', 'last_name': 'last_name', 'email': 'email', 'mobile': 'mobile',
+        #                  'created_at': 'created_at', 'updated_at': 'updated_at'},
+        # )
         serializer = UserSerializer(instance=users, many=True)
         return CustomResponse(response=serializer.data).get_success_response()
 
