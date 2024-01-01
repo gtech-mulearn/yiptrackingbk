@@ -13,7 +13,8 @@ class OrganizationListAPI(APIView):
             return CustomResponse(general_message='Invalid Request').get_failure_response()
         organizations = Organization.objects.filter(org_type=org_type)
         serializer = OrganizationSerializer(organizations, many=True)
-        return CustomResponse(response=serializer.data).get_success_response()
+        data = serializer.data
+        return CustomResponse(response=data).get_success_response()
 
 
 class OrganizationAPI(APIView):
