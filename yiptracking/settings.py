@@ -19,7 +19,8 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'api',
-    'db'
+    'db',
+    'debug_toolbar',
 ]
 
 MIDDLEWARE = [
@@ -27,6 +28,7 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "corsheaders.middleware.CorsMiddleware",
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.middleware.common.CommonMiddleware",
     "yiptracking.middlewares.UniversalErrorHandlerMiddleware",
 ]
@@ -156,3 +158,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 JWT_CONF = {
   "TOKEN_LIFETIME_HOURS":240
 }
+
+INTERNAL_IPS = [
+   # ...
+   '127.0.0.1',
+   # ...
+]
