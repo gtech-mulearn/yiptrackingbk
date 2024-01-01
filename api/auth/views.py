@@ -57,16 +57,15 @@ class UserRegisterAPI(views.APIView):
         return CustomResponse(general_message='User created successfully').get_success_response()
 
     def put(self, request:HttpRequest ):
-        user_id = request.data.get('user_id')
-        updated_by = JWTUtils.fetch_user_id(request)
-        if not updated_by:
+        user_id = JWTUtils.fetch_user_id(request)
+        if not user_id:
             return CustomResponse(general_message="Unauthorized").get_failure_response()
         if not user_id:
             return CustomResponse(general_message="Invalid Request").get_failure_response()
         instance = User.objects.filter(id=user_id).first()
         if instance == None:
             return CustomResponse(general_message='User not found').get_failure_response()
-        serializer = UserSerializer(instance=instance,data=request.data,partial=True,context={'user_id': updated_by})
+        serializer = UserSerializer(instance=instance,data=request.data,partial=True,context={'user_id': user_id})
         if serializer.is_valid():  
             serializer.save()
             return CustomResponse(general_message='User updated successfully').get_success_response()
