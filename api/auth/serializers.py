@@ -33,8 +33,8 @@ class UserSerializer(serializers.ModelSerializer):
         instance.district_id = validated_data.get('district_id', instance.district_id)
         instance.org_id = validated_data.get('org_id', instance.org_id)
         instance.role = validated_data.get('role', instance.role)
-        instance.updated_by = User.objects.get(id=self.context.get('user_id'))
-        instance.updated_at = DateTimeUtils.get_current_datetime()
+        instance.updated_by = self.context.get('user_id')
+        instance.updated_at = DateTimeUtils.get_current_utc_time()
         instance.save()
         return instance
 
