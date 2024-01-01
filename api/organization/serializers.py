@@ -6,6 +6,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
     org_id = serializers.CharField(source='id', read_only=True)
     updated_by = serializers.CharField(read_only=True)
     created_by = serializers.CharField(read_only=True)
+    name = serializers.SerializerMethodField()
 
     def create(self, validated_data):
         validated_data['updated_by'] = validated_data['created_by'] = User.objects.filter(
@@ -16,8 +17,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
         model = Organization
         fields = [
             'org_id',
-            'title',
-            'code',
+            'name',
             'org_type',
             'district_id',
             'updated_by',
@@ -25,6 +25,9 @@ class OrganizationSerializer(serializers.ModelSerializer):
             'created_at',
             'created_by'
         ]
+
+    def get_name(self, obj):
+        return f"{obj.code} - {obj.title}"
 
 
 class UserOrgVisitSerializer(serializers.ModelSerializer):
@@ -53,13 +56,40 @@ class UserOrgVisitSerializer(serializers.ModelSerializer):
 
 
 class UserOrgAssignSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(write_only=True)
+    org_id = serializers.ListField(
+        child=serializers.UUIDField(),
+        write_only=True
+    )
+
     def create(self, validated_data):
-        validated_data['created_by'] = User.objects.filter(id=self.context.get('user_id')).first()
-        return super().create(validated_data)
+        email = validated_data.pop('email', None)
+        org_ids = validated_data.pop('org_id', [])
+
+        user = User.objects.filter(email=email).first()
+        if not user:
+            raise serializers.ValidationError("No user found with this email")
+
+        created_by_user = User.objects.filter(id=self.context.get('user_id')).first()
+        user_org_links = []
+
+        for org_id in org_ids:
+            user_org_link_data = {
+                'user_id': user,
+                'org_id': Organization.objects.filter(id=org_id).first(),
+                'created_by': created_by_user
+            }
+            if UserOrgLink.objects.filter(user_id=user, org_id=org_id).exists():
+                raise serializers.ValidationError("User is already assigned to this organization")
+
+            user_org_link = UserOrgLink.objects.create(**user_org_link_data)
+            user_org_links.append(user_org_link)
+
+        return user_org_links
 
     class Meta:
         model = UserOrgLink
         fields = [
-            'user_id',
-            'org_id'
+            'org_id',
+            'email'
         ]
