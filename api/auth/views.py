@@ -19,16 +19,8 @@ from db.models import User
 class UserListAPI(views.APIView):
     def get(self, request):
         users = User.objects.all()
-        paginated_queryset = CommonUtils.get_paginated_queryset(
-            queryset=users,
-            request=request,
-            search_fields=['first_name', 'last_name', 'email', 'mobile'],
-            sort_fields={'first_name': 'first_name', 'last_name': 'last_name', 'email': 'email', 'mobile': 'mobile',
-                         'created_at': 'created_at', 'updated_at': 'updated_at'},
-            is_pagination=True
-        )
-        serializer = UserSerializer(instance=paginated_queryset.get('queryset'), many=True)
-        return CustomResponse().paginated_response(serializer.data, paginated_queryset.get('pagination'))
+        serializer = UserSerializer(instance=users, many=True)
+        return CustomResponse(message=serializer.data).get_success_response()
 
 
 class UserRegisterAPI(views.APIView):
