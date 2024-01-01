@@ -18,4 +18,4 @@ class Role(Enum):
 class OrgType(Enum):
     COLLEGE = 'College'
     SCHOOL = 'School'
-    ITI = 'ITI'
+    ITI = 'Iti'
