@@ -74,7 +74,7 @@ class UserRegisterAPI(views.APIView):
             serializer.save()
             return CustomResponse(general_message='User updated successfully').get_success_response()
         else:
-            return CustomResponse(general_message="Invalid data!",message=serializer.data)
+            return CustomResponse(general_message="Invalid data!",message=serializer.data).get_failure_response()
 
 
 class UserAuthenticationAPI(APIView):
