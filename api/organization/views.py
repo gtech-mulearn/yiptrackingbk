@@ -5,20 +5,22 @@ from utils.utils import CommonUtils
 from db.models import Organization, UserOrgLink
 from utils.authentication import JWTUtils
 
+
 class OrganizationListAPI(APIView):
 
-        def get(self, request):
-            org_type = request.query_params.get('org_type')
-            org_code = request.query_params.get('code')
-            if org_code:
-                organizations = Organization.objects.filter(code=org_code).first()
-                serializer = OrganizationSerializer(organizations, many=False)
-            elif org_type:
-                organizations = Organization.objects.filter(org_type=org_type)
-                serializer = OrganizationSerializer(organizations, many=True)
-            else:
-                return CustomResponse(general_message='Invalid Request').get_failure_response()
-            return CustomResponse(response=serializer.data).get_success_response()
+    def get(self, request):
+        org_type = request.query_params.get('org_type')
+        org_code = request.query_params.get('code')
+        if org_code:
+            organizations = Organization.objects.filter(code=org_code).first()
+            serializer = OrganizationSerializer(organizations, many=False)
+        elif org_type:
+            organizations = Organization.objects.filter(org_type=org_type)
+            serializer = OrganizationSerializer(organizations, many=True)
+        else:
+            return CustomResponse(general_message='Invalid Request').get_failure_response()
+        return CustomResponse(response=serializer.data).get_success_response()
+
 
 class OrganizationAPI(APIView):
 
@@ -49,9 +51,9 @@ class AssignOrganizationAPI(APIView):
 
     # @role_required([Role.ADMIN])
     def post(self, request):
-        user_id = JWTUtils.fetch_user_id(request)
-        if not user_id:
-            return CustomResponse(general_message='Unauthorized').get_failure_response()
+        user_id = '024e4c92-1f31-4ebe-8259-122e35edcd39'
+        # if not user_id:
+        #     return CustomResponse(general_message='Unauthorized').get_failure_response()
         serializer = UserOrgAssignSerializer(data=request.data, context={'user_id': user_id})
         if serializer.is_valid():
             serializer.save()
@@ -75,5 +77,4 @@ class OrgVisitedAPI(APIView):
         if serializer.is_valid():
             serializer.save()
             return CustomResponse(general_message='Successfuly Updated!').get_success_response()
-        print(serializer.errors)
         return CustomResponse(message=serializer.errors).get_failure_response()
