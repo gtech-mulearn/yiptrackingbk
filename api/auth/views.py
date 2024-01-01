@@ -38,7 +38,7 @@ class UserListAPI(views.APIView):
 
 class UserRegisterAPI(views.APIView):
     def get(self, request):
-        if not JWTUtils.is_jwt_authenticated(request) and not email:
+        if not JWTUtils.is_jwt_authenticated(request):
             return CustomResponse(general_message="Not logged in!").get_failure_response()
         email = request.query_params.get('email')
         if email:
@@ -74,7 +74,7 @@ class UserRegisterAPI(views.APIView):
             serializer.save()
             return CustomResponse(general_message='User updated successfully').get_success_response()
         else:
-            return CustomResponse(general_message="Invalid data!",message=serializer.data)
+            return CustomResponse(general_message="Invalid data!",message=serializer.data).get_failure_response()
 
 
 class UserAuthenticationAPI(APIView):
