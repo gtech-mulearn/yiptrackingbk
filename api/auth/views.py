@@ -1,5 +1,4 @@
-from rest_framework import views, status
-from rest_framework.response import Response
+from rest_framework import views
 from .serializers import *
 from db.models import User
 from django.http import HttpRequest
@@ -7,15 +6,32 @@ from utils.response import CustomResponse
 import decouple
 import jwt
 from datetime import timedelta
-from django.contrib.auth.hashers import check_password
+from django.contrib.auth.hashers import check_password, make_password
 from rest_framework.views import APIView
 from django.db.models import Q
 from utils.response import CustomResponse
 from utils.authentication import generate_jwt, JWTUtils
-from utils.utils import DateTimeUtils, CommonUtils
+from utils.utils import DateTimeUtils
 from db.models import User
 
-
+class PasswordResetAPI(views.APIView):
+    
+    def patch(self, request):
+        user_id = JWTUtils.fetch_user_id(request)
+        if not user_id:
+            return CustomResponse(general_message="Unauthorized").get_failure_response()
+        if user := User.objects.filter(id=user_id).first():
+            old_password = request.data.get('old_password')
+            new_password = request.data.get('new_password')
+            if not old_password or not new_password:
+                return CustomResponse(general_message="Invalid request").get_failure_response()
+            if not check_password(old_password, user.password):
+                return CustomResponse(general_message="Invalid password").get_failure_response()
+            user.password = make_password(new_password)
+            user.save()
+            return CustomResponse(general_message="Password set successfully").get_success_response()
+        else:
+            return CustomResponse(general_message="Invalid user").get_failure_response()
 class UserListAPI(views.APIView):
     def get(self, request):
         users = User.objects.all()
