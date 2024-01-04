@@ -6,6 +6,26 @@ from db.models import Organization, UserOrgLink
 from utils.authentication import JWTUtils
 import json
 
+class OrganizationIdeaCountAPI(APIView):
+    def get(self,request):
+        if not JWTUtils.is_jwt_authenticated(request):
+            return CustomResponse(general_message='Unauthorized').get_failure_response()
+        orgs = Organization.objects.all()
+        
+        data = {
+            'pre_registration': 0,
+            'vos_completed': 0,
+            'group_formation': 0,
+            'idea_submissions': 0
+        }
+        
+        for org in orgs:
+            data['pre_registration'] += org.pre_registration
+            data['vos_completed'] += org.vos_completed
+            data['group_formation'] += org.group_formation
+            data['idea_submissions'] += org.idea_submissions
+        return CustomResponse(response=data).get_success_response()
+
 class OrganizationListAPI(APIView):
 
     def get(self, request):
