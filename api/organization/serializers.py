@@ -10,6 +10,11 @@ class OrganizationSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'name',
+            'code',
+            'pre_registration',
+            'vos_completed',
+            'group_formation',
+            'idea_submissions',
         ]
 
     def get_name(self, obj):
