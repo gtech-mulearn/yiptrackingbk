@@ -50,6 +50,10 @@ CREATE TABLE organization
     code        VARCHAR(12) UNIQUE KEY  NOT NULL,
     org_type    VARCHAR(25)             NOT NULL,
     district_id VARCHAR(36),
+    pre_registration BIGINT DEFAULT 0 NOT NULL,
+    vos_completed BIGINT DEFAULT 0 NOT NULL,
+    group_formation BIGINT DEFAULT 0 NOT NULL,
+    idea_submissions BIGINT DEFAULT 0 NOT NULL,
     updated_by  VARCHAR(36)             NOT NULL,
     updated_at  DATETIME                NOT NULL,
     created_by  VARCHAR(36)             NOT NULL,
@@ -82,3 +86,12 @@ CREATE TABLE user_org_link
 ALTER TABLE user
     ADD CONSTRAINT fk_user_ref_org_id FOREIGN KEY (org_id) REFERENCES organization (id) ON DELETE CASCADE,
     ADD CONSTRAINT fk_user_ref_district_id FOREIGN KEY (district_id) REFERENCES district (id) ON DELETE CASCADE;
+
+
+-- ALTER SCRIPTS 
+
+ALTER TABLE organization
+    ADD COLUMN pre_registration BIGINT DEFAULT 0 NOT NULL AFTER district_id,
+    ADD COLUMN vos_completed BIGINT DEFAULT 0 NOT NULL AFTER pre_registration,
+    ADD COLUMN group_formation BIGINT DEFAULT 0 NOT NULL AFTER vos_completed,
+    ADD COLUMN idea_submissions BIGINT DEFAULT 0 NOT NULL AFTER group_formation;
