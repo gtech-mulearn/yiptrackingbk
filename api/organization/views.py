@@ -18,7 +18,7 @@ class OrganizationIdeaCountAPI(APIView):
             'group_formation': 0,
             'idea_submissions': 0
         }
-        
+
         for org in orgs:
             data['pre_registration'] += org.pre_registration
             data['vos_completed'] += org.vos_completed
@@ -41,15 +41,8 @@ class OrganizationAPI(APIView):
 
     def get(self, request):
         organizations = Organization.objects.all()
-        paginated_queryset = CommonUtils.get_paginated_queryset(
-            organizations,
-            request,
-            search_fields=['title', 'code'],
-            sort_fields={'title': 'title', 'code': 'code', 'created_at': 'created_at', 'updated_at': 'updated_at'},
-            is_pagination=True
-        )
-        serializer = OrganizationSerializer(paginated_queryset.get('queryset'), many=True)
-        return CustomResponse().paginated_response(serializer.data, paginated_queryset.get('pagination'))
+        serializer = OrganizationSerializer(organizations, many=True)
+        return CustomResponse(response=serializer.data).get_success_response()
 
     def post(self, request):
         user_id = JWTUtils.fetch_user_id(request)
