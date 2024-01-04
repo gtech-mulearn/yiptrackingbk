@@ -4,7 +4,7 @@ from django.db.models.query import QuerySet
 from django.http import HttpResponse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q
-import csv, gzip
+import csv, gzip, openpyxl, io
 
 class CommonUtils:
     @staticmethod
@@ -120,3 +120,19 @@ class DateTimeUtils:
             day=1, month=start_date.month % 12 + 1
         ) - timedelta(days=1)
         return start_date, end_date
+
+
+class ImportCSV:
+    def read_excel_file(self, file_obj):
+        workbook = openpyxl.load_workbook(filename=io.BytesIO(file_obj.read()))
+        sheet = workbook.active
+
+        rows = []
+        for row in sheet.iter_rows(values_only=True):
+            row_dict = {
+                header.value: cell_value for header, cell_value in zip(sheet[1], row)
+            }
+            rows.append(row_dict)
+        workbook.close()
+
+        return rows
