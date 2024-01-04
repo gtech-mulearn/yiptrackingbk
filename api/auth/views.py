@@ -15,7 +15,6 @@ from utils.utils import DateTimeUtils
 from db.models import User
 
 class PasswordResetAPI(views.APIView):
-    
     def patch(self, request):
         user_id = JWTUtils.fetch_user_id(request)
         if not user_id:
@@ -32,6 +31,7 @@ class PasswordResetAPI(views.APIView):
             return CustomResponse(general_message="Password set successfully").get_success_response()
         else:
             return CustomResponse(general_message="Invalid user").get_failure_response()
+
 class UserListAPI(views.APIView):
     def get(self, request):
         users = User.objects.all()
@@ -50,7 +50,6 @@ class UserListAPI(views.APIView):
         # )
         serializer = UserSerializer(instance=users, many=True)
         return CustomResponse(response=serializer.data).get_success_response()
-
 
 class UserRegisterAPI(views.APIView):
     def get(self, request):
