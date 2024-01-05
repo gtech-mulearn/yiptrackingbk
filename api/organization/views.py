@@ -5,6 +5,7 @@ from utils.utils import ImportCSV
 from db.models import Organization, UserOrgLink, District, Zone
 from utils.authentication import JWTUtils
 import json
+from django.db.models import Q
 
 class OrganizationIdeaCountAPI(APIView):
 
@@ -51,6 +52,9 @@ class OrganizationAPI(APIView):
 
     def get(self, request):
         organizations = Organization.objects.all()
+        search = request.query_params.get('search')
+        if search:
+            organizations = organizations.filter(Q(title__icontains=search) | Q(code__icontains=search))
         serializer = OrganizationSerializer(organizations, many=True)
         return CustomResponse(response=serializer.data).get_success_response()
 
