@@ -1,24 +1,34 @@
 from rest_framework.views import APIView
 from .serializers import OrganizationSerializer, UserOrgAssignSerializer, UserOrgVisitSerializer
 from utils.response import CustomResponse
-from utils.utils import CommonUtils, ImportCSV
-from db.models import Organization, UserOrgLink
+from utils.utils import ImportCSV
+from db.models import Organization, UserOrgLink, District, Zone
 from utils.authentication import JWTUtils
 import json
 
 class OrganizationIdeaCountAPI(APIView):
+
     def get(self,request):
         if not JWTUtils.is_jwt_authenticated(request):
             return CustomResponse(general_message='Unauthorized').get_failure_response()
+        zone_id = request.query_params.get('zone_id')
+        district_id = request.query_params.get('district_id')
+        org_type = request.query_params.get('org_type')
+
         orgs = Organization.objects.all()
-        
+        if zone_id:
+            orgs = orgs.filter(district_id__zone_id=zone_id)
+        if district_id:
+            orgs = orgs.filter(district_id=district_id)
+        if org_type:
+            orgs = orgs.filter(org_type=org_type)
         data = {
             'pre_registration': 0,
             'vos_completed': 0,
             'group_formation': 0,
             'idea_submissions': 0
         }
-
+        
         for org in orgs:
             data['pre_registration'] += org.pre_registration
             data['vos_completed'] += org.vos_completed
