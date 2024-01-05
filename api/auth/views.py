@@ -80,8 +80,6 @@ class UserRegisterAPI(views.APIView):
         user_id = JWTUtils.fetch_user_id(request)
         if not user_id:
             return CustomResponse(general_message="Unauthorized").get_failure_response()
-        if not user_id:
-            return CustomResponse(general_message="Invalid Request").get_failure_response()
         instance = User.objects.filter(id=user_id).first()
         if instance == None:
             return CustomResponse(general_message='User not found').get_failure_response()
@@ -90,7 +88,7 @@ class UserRegisterAPI(views.APIView):
             serializer.save()
             return CustomResponse(general_message='User updated successfully').get_success_response()
         else:
-            return CustomResponse(general_message="Invalid data!",message=serializer.data).get_failure_response()
+            return CustomResponse(general_message="Invalid data!",message=serializer.errors).get_failure_response()
 
 
 class UserAuthenticationAPI(APIView):

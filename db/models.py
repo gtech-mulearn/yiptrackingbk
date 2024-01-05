@@ -66,6 +66,10 @@ class Organization(models.Model):
     org_type = models.CharField(max_length=25, null=False, blank=False)
     district_id = models.ForeignKey('District', on_delete=models.CASCADE, null=True, blank=False,
                                     related_name='org_district_id', db_column='district_id')
+    pre_registration = models.IntegerField(null=False, blank=False, default=0)
+    vos_completed = models.IntegerField(null=False, blank=False, default=0)
+    group_formation = models.IntegerField(null=False, blank=False, default=0)
+    idea_submissions = models.IntegerField(null=False, blank=False, default=0)
     updated_by = models.ForeignKey('User', on_delete=models.CASCADE, null=False, blank=False,
                                    related_name='org_updated_by', db_column='updated_by')
     updated_at = models.DateTimeField(auto_now=True)
