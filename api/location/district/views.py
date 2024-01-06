@@ -30,6 +30,7 @@ class DistrictAPI(APIView):
             return CustomResponse(general_message='District created successfully').get_success_response()
         return CustomResponse(message=serializer.errors).get_failure_response()
 
+
 class DistrictSummaryAPI(APIView):
     def get(self, request):
         query = """WITH DistrictSummary AS (
@@ -56,7 +57,9 @@ class DistrictSummaryAPI(APIView):
                 {
                     'district': row[0],
                     'no_of_entries': row[1],
-                    'visited': row[2]
-                })
+                    'visited': row[2],
+                    'participants': row[3],
+                }
+                for row in rows
+            )
         return CustomResponse(response=data).get_success_response()
-
