@@ -14,6 +14,7 @@ class UserSerializer(serializers.ModelSerializer):
     org_name = serializers.CharField(source='org_id.title', read_only=True, default=None)
     zone_id = serializers.CharField(source='district_id.zone_id.id', read_only=True, default=None)
     zone_name = serializers.CharField(source='district_id.zone_id.name', read_only=True, default=None)
+    created_by = serializers.CharField(write_only=True)
 
     def create(self, validated_data):
         password = validated_data.pop("password")
@@ -57,8 +58,6 @@ class UserSerializer(serializers.ModelSerializer):
             'zone_id',
             'zone_name',
             'assigned',
-            'updated_at',
-            'created_at',
             'created_by'
         ]
 
