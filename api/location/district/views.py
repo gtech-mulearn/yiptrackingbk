@@ -6,6 +6,7 @@ from db.models import District
 from utils.authentication import JWTUtils
 from django.db import connection
 
+
 class DistrictAPI(APIView):
     def get(self, request):
         district = District.objects.all()
@@ -29,13 +30,15 @@ class DistrictAPI(APIView):
             return CustomResponse(general_message='District created successfully').get_success_response()
         return CustomResponse(message=serializer.errors).get_failure_response()
 
+
 class DistrictSummaryAPI(APIView):
     def get(self, request):
         query = """WITH DistrictSummary AS (
                     SELECT
                         d.name AS District,
                         COUNT(uol.id) AS No_of_entries,
-                        SUM(CASE WHEN uol.visited = True THEN 1 ELSE 0 END) AS visited
+                        SUM(CASE WHEN uol.visited = True THEN 1 ELSE 0 END) AS visited,
+                        SUM(uol.participants) AS participants
                     FROM
                         user_org_link uol
                         INNER JOIN organization o ON uol.org_id = o.id
@@ -45,16 +48,18 @@ class DistrictSummaryAPI(APIView):
                     ORDER BY No_of_entries
                     DESC
                     )
-                SELECT * FROM DistrictSummary"""
+                    SELECT * FROM DistrictSummary"""
         data = []
         with connection.cursor() as cursor:
             cursor.execute(query)
             rows = cursor.fetchall()
-            for row in rows:
-                data.append({
+            data.extend(
+                {
                     'district': row[0],
                     'no_of_entries': row[1],
-                    'visited': row[2]
-                })
+                    'visited': row[2],
+                    'participants': row[3],
+                }
+                for row in rows
+            )
         return CustomResponse(response=data).get_success_response()
-
