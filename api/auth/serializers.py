@@ -12,8 +12,8 @@ class UserSerializer(serializers.ModelSerializer):
     assigned = serializers.SerializerMethodField(method_name='get_assigned')
     district_name = serializers.CharField(source='district_id.name', read_only=True, default=None)
     org_name = serializers.CharField(source='org_id.title', read_only=True, default=None)
-    zone_id = serializers.CharField(source='district_id.zone_id.id', read_only=True, default=None)
     zone_name = serializers.CharField(source='district_id.zone_id.name', read_only=True, default=None)
+    created_by = serializers.CharField(write_only=True)
 
     def create(self, validated_data):
         password = validated_data.pop("password")
@@ -54,11 +54,8 @@ class UserSerializer(serializers.ModelSerializer):
             'district_name',
             'org_id',
             'org_name',
-            'zone_id',
             'zone_name',
             'assigned',
-            'updated_at',
-            'created_at',
             'created_by'
         ]
 
@@ -75,9 +72,7 @@ class UserSerializer(serializers.ModelSerializer):
                 'whatsapp': org.whatsapp,
                 'participants': org.participants,
                 'visited_at': org.visited_at,
-                'district_id': org.org_id.district_id.id,
                 'district_name': org.org_id.district_id.name,
-                'zone_id': org.org_id.district_id.zone_id.id,
                 'zone_name': org.org_id.district_id.zone_id.name,
             }
 
