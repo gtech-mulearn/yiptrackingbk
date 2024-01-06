@@ -7,13 +7,12 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework import authentication
 from rest_framework.permissions import BasePermission
-from rest_framework.exceptions import AuthenticationFailed, ParseError
-import decouple, pytz
+from rest_framework.exceptions import AuthenticationFailed
+import decouple
 from yiptracking.settings import SECRET_KEY
 from .exceptions import UnauthorizedAccessException
 from .utils import DateTimeUtils
 from .response import CustomResponse
-from .types import Role
 
 User = get_user_model()
 
@@ -182,7 +181,7 @@ def string_to_date_time(dt_str):
 
 
 def generate_jwt(user):
-    access_expiry_time = DateTimeUtils.get_current_utc_time() + timedelta(seconds=10800)  # 3 hour
+    access_expiry_time = DateTimeUtils.get_current_utc_time() + timedelta(hours=settings.JWT_CONF['TOKEN_LIFETIME_HOURS'])
     access_expiry = str(DateTimeUtils.format_time(access_expiry_time))
 
     access_token = jwt.encode(
