@@ -156,7 +156,7 @@ STATIC_URL = '/static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 JWT_CONF = {
-  "TOKEN_LIFETIME_HOURS":240
+  "TOKEN_LIFETIME_HOURS":960
 }
 
 INTERNAL_IPS = [
