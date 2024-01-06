@@ -9,18 +9,17 @@ from utils.authentication import JWTUtils
 
 
 class ZoneAPI(APIView):
-
     def get(self, request):
         zones = Zone.objects.all()
-        paginated_queryset = CommonUtils.get_paginated_queryset(
-            zones,
-            request,
-            search_fields=['name'],
-            sort_fields={'name': 'name', 'created_at': 'created_at', 'updated_at': 'updated_at'},
-            is_pagination=True
-        )
-        serializer = ZoneSerializer(paginated_queryset.get('queryset'), many=True)
-        return CustomResponse().paginated_response(serializer.data, paginated_queryset.get('pagination'))
+        # paginated_queryset = CommonUtils.get_paginated_queryset(
+        #     zones,
+        #     request,
+        #     search_fields=['name'],
+        #     sort_fields={'name': 'name', 'created_at': 'created_at', 'updated_at': 'updated_at'},
+        #     is_pagination=True
+        # )
+        serializer = ZoneSerializer(zones, many=True)
+        return CustomResponse(response=serializer.data).get_success_response()
 
     def post(self, request):
         user_id = JWTUtils.fetch_user_id(request)
