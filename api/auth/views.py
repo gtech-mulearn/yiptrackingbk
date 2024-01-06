@@ -61,7 +61,7 @@ class UserRegisterAPI(views.APIView):
         else:
             user_id = JWTUtils.fetch_user_id(request)
             if not user_id:
-                return CustomResponse(general_message="Invalid token").get_success_response()
+                return CustomResponse(general_message="Invalid token!").get_success_response()
             user = User.objects.filter(id=user_id).first()
         if not user:
             return CustomResponse(general_message="Invalid user").get_success_response()
