@@ -57,8 +57,8 @@ class DistrictSummaryAPI(APIView):
                 {
                     'district': row[0],
                     'no_of_entries': row[1],
-                    'visited': row[2],
-                    'participants': row[3],
+                    'visited': int(row[2]),
+                    'participants': int(row[3]),
                 }
                 for row in rows
             )
