@@ -25,8 +25,6 @@ class UserOrgVisitSerializer(serializers.ModelSerializer):
     user_id = serializers.CharField(read_only=True)
     org_id = serializers.CharField(read_only=True)
     id = serializers.CharField(read_only=True)
-    created_at = serializers.DateField(read_only=True)
-    created_by = serializers.CharField(read_only=True)
 
     class Meta:
         model = UserOrgLink
@@ -41,8 +39,6 @@ class UserOrgVisitSerializer(serializers.ModelSerializer):
             'whatsapp',
             'participants',
             'visited_at',
-            'created_at',
-            'created_by'
         ]
 
 
