@@ -13,6 +13,7 @@ from utils.response import CustomResponse
 from utils.authentication import generate_jwt, JWTUtils
 from utils.utils import DateTimeUtils
 from db.models import User
+from django.conf import settings
 
 class PasswordResetAPI(views.APIView):
     def patch(self, request):
@@ -127,7 +128,7 @@ class GetAccessToken(APIView):
             if not user:
                 return CustomResponse(general_message="User invalid").get_failure_response(1004)
 
-            access_expiry_time = DateTimeUtils.get_current_utc_time() + timedelta(seconds=10800)  # 3 hour
+            access_expiry_time = DateTimeUtils.get_current_utc_time() + timedelta(hours=settings.JWT_CONF['TOKEN_LIFETIME_HOURS'])  # 3 hour
             access_expiry = access_expiry_time.strftime("%Y-%m-%d %H:%M:%S%z")
             access_token = jwt.encode(
                 {
