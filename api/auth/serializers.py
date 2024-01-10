@@ -5,6 +5,26 @@ from db.models import UserOrgLink, Organization, District, Zone
 from utils.types import OrgType
 from utils.utils import DateTimeUtils
 
+class UserListSerializer(serializers.ModelSerializer):
+    user_id = serializers.CharField(source='id', read_only=True)
+    password = serializers.CharField(write_only=True)
+    district_name = serializers.CharField(source='district_id.name', read_only=True, default=None)
+    org_name = serializers.CharField(source='org_id.title', read_only=True, default=None)
+
+    class Meta:
+        model = User
+        fields = [
+            'user_id',
+            'first_name',
+            'last_name',
+            'role',
+            'email',
+            'mobile',
+            'password',
+            'gender',
+            'district_name',
+            'org_name',
+        ]
 
 class UserSerializer(serializers.ModelSerializer):
     user_id = serializers.CharField(source='id', read_only=True)

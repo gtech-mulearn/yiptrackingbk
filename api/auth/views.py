@@ -49,7 +49,7 @@ class UserListAPI(views.APIView):
         #     sort_fields={'first_name': 'first_name', 'last_name': 'last_name', 'email': 'email', 'mobile': 'mobile',
         #                  'created_at': 'created_at', 'updated_at': 'updated_at'},
         # )
-        serializer = UserSerializer(instance=users, many=True)
+        serializer = UserListSerializer(instance=users, many=True)
         return CustomResponse(response=serializer.data).get_success_response()
 
 class UserRegisterAPI(views.APIView):
