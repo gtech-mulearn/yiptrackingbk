@@ -24,6 +24,9 @@ class OrganizationIdeaCountAPI(APIView):
         if org_type:
             orgs = orgs.filter(org_type=org_type)
         data = {
+            'college':[],
+            'school':[],
+            'iti':[],
             'pre_registration': 0,
             'vos_completed': 0,
             'group_formation': 0,
@@ -31,10 +34,12 @@ class OrganizationIdeaCountAPI(APIView):
         }
         
         for org in orgs:
+            data[org.org_type.lower()].append(OrganizationSerializer(instance=org).data)
             data['pre_registration'] += org.pre_registration
             data['vos_completed'] += org.vos_completed
             data['group_formation'] += org.group_formation
             data['idea_submissions'] += org.idea_submissions
+        
         return CustomResponse(response=data).get_success_response()
 
 class OrganizationListAPI(APIView):

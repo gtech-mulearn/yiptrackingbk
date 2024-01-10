@@ -4,7 +4,7 @@ from db.models import Organization, UserOrgLink, User
 
 class OrganizationSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField()
-
+    
     class Meta:
         model = Organization
         fields = [
@@ -16,6 +16,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
             'group_formation',
             'idea_submissions',
         ]
+
 
     def get_name(self, obj):
         return f"{obj.code} - {obj.title}"
