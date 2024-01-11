@@ -106,7 +106,7 @@ class UserAuthenticationAPI(APIView):
             else:
                 return CustomResponse(general_message="Invalid password").get_failure_response()
         else:
-            return CustomResponse(general_message="Invalid muid or email").get_failure_response()
+            return CustomResponse(general_message="Invalid email").get_failure_response()
 
 
 class GetAccessToken(APIView):
