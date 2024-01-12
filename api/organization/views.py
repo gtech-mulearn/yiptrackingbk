@@ -64,7 +64,7 @@ class OrganizationListAPI(APIView):
             is_pagination=True
         )
 
-        serializer = OrganizationSerializer(instance=orgs, many=True)
+        serializer = OrganizationSerializer(instance=paginated_queryset.get('queryset'), many=True)
         return CustomResponse().paginated_response(data=serializer.data, pagination=paginated_queryset.get('pagination'))
 
 
