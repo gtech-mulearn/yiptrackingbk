@@ -1,8 +1,8 @@
 from rest_framework.views import APIView
 from .serializers import OrganizationSerializer, UserOrgAssignSerializer, UserOrgVisitSerializer
 from utils.response import CustomResponse
-from utils.utils import ImportCSV
-from db.models import Organization, UserOrgLink, District, Zone
+from utils.utils import ImportCSV, CommonUtils
+from db.models import Organization, UserOrgLink
 from utils.authentication import JWTUtils
 import json
 from django.db.models import Q
@@ -23,18 +23,15 @@ class OrganizationIdeaCountAPI(APIView):
             orgs = orgs.filter(district_id=district_id)
         if org_type:
             orgs = orgs.filter(org_type=org_type)
+        
         data = {
-            'college':[],
-            'school':[],
-            'iti':[],
             'pre_registration': 0,
             'vos_completed': 0,
             'group_formation': 0,
             'idea_submissions': 0
         }
-        
+
         for org in orgs:
-            data[org.org_type.lower()].append(OrganizationSerializer(instance=org).data)
             data['pre_registration'] += org.pre_registration
             data['vos_completed'] += org.vos_completed
             data['group_formation'] += org.group_formation
@@ -44,13 +41,31 @@ class OrganizationIdeaCountAPI(APIView):
 
 class OrganizationListAPI(APIView):
 
-    def get(self, request):
-        if not (org_type := request.query_params.get('org_type')):
-            return CustomResponse(general_message='Invalid Request').get_failure_response()
-        organizations = Organization.objects.filter(org_type=org_type)
-        serializer = OrganizationSerializer(organizations, many=True)
-        data = serializer.data
-        return CustomResponse(response=data).get_success_response()
+    def get(self,request):
+        if not JWTUtils.is_jwt_authenticated(request):
+            return CustomResponse(general_message='Unauthorized').get_failure_response()
+        zone_id = request.query_params.get('zone_id')
+        district_id = request.query_params.get('district_id')
+        org_type = request.query_params.get('org_type')
+
+        orgs = Organization.objects.all()
+        if zone_id:
+            orgs = orgs.filter(district_id__zone_id=zone_id)
+        if district_id:
+            orgs = orgs.filter(district_id=district_id)
+        if org_type:
+            orgs = orgs.filter(org_type=org_type)
+            
+        paginated_queryset = CommonUtils.get_paginated_queryset(
+            orgs, 
+            request, 
+            search_fields=['title', 'code'], 
+            sort_fields={'title': 'title', 'code': 'code'},
+            is_pagination=True
+        )
+
+        serializer = OrganizationSerializer(instance=paginated_queryset.get('queryset'), many=True)
+        return CustomResponse().paginated_response(data=serializer.data, pagination=paginated_queryset.get('pagination'))
 
 
 class OrganizationAPI(APIView):
