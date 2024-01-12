@@ -96,7 +96,7 @@ class UserSerializer(serializers.ModelSerializer):
                 'zone_name': org.org_id.district_id.zone_id.name,
             }
 
-        assigned_orgs = UserOrgLink.objects.filter(user_id=obj.id)
+        assigned_orgs = UserOrgLink.objects.filter(user_id=obj.id).prefetch_related('org_id').prefetch_related('org_id__district_id').prefetch_related('org_id__district_id__zone_id')
 
         data = {
             'college': [append_org_data(org, OrgType.COLLEGE.value) for org in assigned_orgs if
