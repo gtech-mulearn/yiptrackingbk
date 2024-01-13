@@ -2,10 +2,11 @@ from rest_framework.views import APIView
 from .serializers import DistrictSerializer
 from utils.response import CustomResponse
 from utils.utils import CommonUtils
-from db.models import District
+from db.models import District, UserOrgLink
 from utils.authentication import JWTUtils
 from django.db import connection
-
+from django.db.models import Count, Sum, Value, IntegerField, Case, When, F
+from django.db.models.functions import Coalesce
 
 class DistrictAPI(APIView):
     def get(self, request):
@@ -36,44 +37,16 @@ class DistrictSummaryAPI(APIView):
         district_id = request.query_params.get('district_id')
         zone_id = request.query_params.get('zone_id')
         org_type = request.query_params.get('org_type')
-        q1 = """WITH DistrictSummary AS (
-                    SELECT
-                        d.name AS District,
-                        COUNT(uol.id) AS No_of_entries,
-                        SUM(CASE WHEN uol.visited = True THEN 1 ELSE 0 END) AS visited,
-                        IFNULL(SUM(uol.participants),0) AS participants
-                    FROM
-                        user_org_link uol
-                        INNER JOIN organization o ON uol.org_id = o.id
-                        RIGHT JOIN district d ON o.district_id = d.id
-                    """
-        q2 = """\n
-        GROUP BY
-            d.name
-        ORDER BY No_of_entries
-                    DESC
-                    )
-                    SELECT * FROM DistrictSummary"""
-        q = ""
-        if district_id:
-            q = f"\nWHERE d.id = '{district_id}' "
-        if zone_id:
-            q +=f"\nWHERE d.zone_id = '{zone_id}' " if not q.endswith(" ") else f"AND d.zone_id = '{zone_id}' "
-        if org_type:
-            q = f"\nWHERE o.org_type = '{org_type}' " if not q.endswith(" ") else f"AND d.org_type = {zone_id} "
+        district_summary = (
+            UserOrgLink.objects
+                .values(district=F('org_id__district_id__name'))
+                .annotate(
+                    No_of_entries=Count('id'),
+                    visited=Sum(Case(When(visited=True, then=Value(1)), default=Value(0), output_field=IntegerField())),
+                    participants=Coalesce(Sum('participants'),0)
+                )
+                .order_by('-No_of_entries')
+        )
+        result = list(district_summary)
         
-        query = q1 + q + q2
-        data = []
-        with connection.cursor() as cursor:
-            cursor.execute(query)
-            rows = cursor.fetchall()
-            data.extend(
-                {
-                    'district': row[0],
-                    'no_of_entries': row[1],
-                    'visited': int(row[2]),
-                    'participants': int(row[3]),
-                }
-                for row in rows
-            )
-        return CustomResponse(response=data).get_success_response()
+        return CustomResponse(response=result).get_success_response()
