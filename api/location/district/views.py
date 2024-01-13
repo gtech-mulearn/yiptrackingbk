@@ -39,14 +39,21 @@ class DistrictSummaryAPI(APIView):
         org_type = request.query_params.get('org_type')
         district_summary = (
             UserOrgLink.objects
-                .values(district=F('org_id__district_id__name'))
+                .values(district_id=F('org_id__district_id'))
                 .annotate(
-                    No_of_entries=Count('id'),
+                    district=F('org_id__district_id__name'),
+                    no_of_entries=Count('id'),
                     visited=Sum(Case(When(visited=True, then=Value(1)), default=Value(0), output_field=IntegerField())),
-                    participants=Coalesce(Sum('participants'),0)
+                    participants=Coalesce(Sum('participants'),0),
                 )
-                .order_by('-No_of_entries')
+                .order_by('-no_of_entries')
         )
+        if district_id:
+            district_summary = district_summary.filter(org_id__district_id=district_id)
+        if org_type:
+            district_summary = district_summary.filter(org_id__org_type=org_type)
+        if zone_id:
+            district_summary = district_summary.filter(org_id__district_id__zone_id=zone_id)
+        district_summary = district_summary.values('district','no_of_entries','visited','participants')
         result = list(district_summary)
-        
         return CustomResponse(response=result).get_success_response()
