@@ -5,7 +5,8 @@ from utils.utils import ImportCSV, CommonUtils
 from db.models import Organization, UserOrgLink
 from utils.authentication import JWTUtils
 import json
-from django.db.models import Q
+from django.db.models import Q, Sum, Value
+from django.db.models.functions import Coalesce
 
 class OrganizationIdeaCountAPI(APIView):
 
@@ -24,18 +25,12 @@ class OrganizationIdeaCountAPI(APIView):
         if org_type:
             orgs = orgs.filter(org_type=org_type)
         
-        data = {
-            'pre_registration': 0,
-            'vos_completed': 0,
-            'group_formation': 0,
-            'idea_submissions': 0
-        }
-
-        for org in orgs:
-            data['pre_registration'] += org.pre_registration
-            data['vos_completed'] += org.vos_completed
-            data['group_formation'] += org.group_formation
-            data['idea_submissions'] += org.idea_submissions
+        data = orgs.aggregate(
+            pre_registration=Coalesce(Sum('pre_registration'),Value(0)),
+            vos_completed=Coalesce(Sum('vos_completed'),Value(0)),
+            group_formation=Coalesce(Sum('group_formation'),Value(0)),
+            idea_submissions=Coalesce(Sum('idea_submissions'),Value(0)),
+        )
         
         return CustomResponse(response=data).get_success_response()
 
@@ -47,7 +42,8 @@ class OrganizationListAPI(APIView):
         zone_id = request.query_params.get('zone_id')
         district_id = request.query_params.get('district_id')
         org_type = request.query_params.get('org_type')
-
+        is_pagination = request.query_params.get('is_pagination', '').lower() in ('true','1')
+        
         orgs = Organization.objects.all()
         if zone_id:
             orgs = orgs.filter(district_id__zone_id=zone_id)
@@ -56,16 +52,18 @@ class OrganizationListAPI(APIView):
         if org_type:
             orgs = orgs.filter(org_type=org_type)
             
-        paginated_queryset = CommonUtils.get_paginated_queryset(
-            orgs, 
-            request, 
-            search_fields=['title', 'code'], 
-            sort_fields={'title': 'title', 'code': 'code'},
-            is_pagination=True
-        )
-
-        serializer = OrganizationSerializer(instance=paginated_queryset.get('queryset'), many=True)
-        return CustomResponse().paginated_response(data=serializer.data, pagination=paginated_queryset.get('pagination'))
+        if is_pagination:
+            paginated_queryset = CommonUtils.get_paginated_queryset(
+                orgs, 
+                request, 
+                search_fields=['title', 'code'], 
+                sort_fields={'title': 'title', 'code': 'code'},
+                is_pagination=True
+            )
+            serializer = OrganizationSerializer(instance=paginated_queryset.get('queryset'), many=True)
+            return CustomResponse().paginated_response(data=serializer.data, pagination=paginated_queryset.get('pagination'))
+        serializer = OrganizationSerializer(instance=orgs,many=True)
+        return CustomResponse(response=serializer.data).get_success_response()
 
 
 class OrganizationAPI(APIView):

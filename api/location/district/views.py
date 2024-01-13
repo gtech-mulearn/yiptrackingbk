@@ -2,10 +2,11 @@ from rest_framework.views import APIView
 from .serializers import DistrictSerializer
 from utils.response import CustomResponse
 from utils.utils import CommonUtils
-from db.models import District
+from db.models import District, UserOrgLink
 from utils.authentication import JWTUtils
 from django.db import connection
-
+from django.db.models import Count, Sum, Value, IntegerField, Case, When, F
+from django.db.models.functions import Coalesce
 
 class DistrictAPI(APIView):
     def get(self, request):
@@ -33,33 +34,26 @@ class DistrictAPI(APIView):
 
 class DistrictSummaryAPI(APIView):
     def get(self, request):
-        query = """WITH DistrictSummary AS (
-                    SELECT
-                        d.name AS District,
-                        COUNT(uol.id) AS No_of_entries,
-                        SUM(CASE WHEN uol.visited = True THEN 1 ELSE 0 END) AS visited,
-                        SUM(uol.participants) AS participants
-                    FROM
-                        user_org_link uol
-                        INNER JOIN organization o ON uol.org_id = o.id
-                        RIGHT JOIN district d ON o.district_id = d.id
-                    GROUP BY
-                        d.name
-                    ORDER BY No_of_entries
-                    DESC
-                    )
-                    SELECT * FROM DistrictSummary"""
-        data = []
-        with connection.cursor() as cursor:
-            cursor.execute(query)
-            rows = cursor.fetchall()
-            data.extend(
-                {
-                    'district': row[0],
-                    'no_of_entries': row[1],
-                    'visited': int(row[2]),
-                    'participants': int(row[3]),
-                }
-                for row in rows
-            )
-        return CustomResponse(response=data).get_success_response()
+        district_id = request.query_params.get('district_id')
+        zone_id = request.query_params.get('zone_id')
+        org_type = request.query_params.get('org_type')
+        district_summary = (
+            UserOrgLink.objects
+                .values(district_id=F('org_id__district_id'))
+                .annotate(
+                    district=F('org_id__district_id__name'),
+                    no_of_entries=Count('id'),
+                    visited=Sum(Case(When(visited=True, then=Value(1)), default=Value(0), output_field=IntegerField())),
+                    participants=Coalesce(Sum('participants'),0),
+                )
+                .order_by('-no_of_entries')
+        )
+        if district_id:
+            district_summary = district_summary.filter(org_id__district_id=district_id)
+        if org_type:
+            district_summary = district_summary.filter(org_id__org_type=org_type)
+        if zone_id:
+            district_summary = district_summary.filter(org_id__district_id__zone_id=zone_id)
+        district_summary = district_summary.values('district','no_of_entries','visited','participants')
+        result = list(district_summary)
+        return CustomResponse(response=result).get_success_response()
