@@ -31,7 +31,7 @@ class OrganizationIdeaCountAPI(APIView):
             group_formation=Coalesce(Sum('group_formation'),Value(0)),
             idea_submissions=Coalesce(Sum('idea_submissions'),Value(0)),
         )
-        
+
         return CustomResponse(response=data).get_success_response()
 
 class OrganizationListAPI(APIView):
@@ -42,7 +42,7 @@ class OrganizationListAPI(APIView):
         zone_id = request.query_params.get('zone_id')
         district_id = request.query_params.get('district_id')
         org_type = request.query_params.get('org_type')
-        is_pagination = request.query_params.get('is_pagination', '').lower() in ('true','1')
+        is_pagination = not (request.query_params.get('is_pagination', '').lower() in ('false','0'))
         
         orgs = Organization.objects.all()
         if zone_id:
