@@ -33,22 +33,36 @@ class DistrictAPI(APIView):
 
 class DistrictSummaryAPI(APIView):
     def get(self, request):
-        query = """WITH DistrictSummary AS (
+        district_id = request.query_params.get('district_id')
+        zone_id = request.query_params.get('zone_id')
+        org_type = request.query_params.get('org_type')
+        q1 = """WITH DistrictSummary AS (
                     SELECT
                         d.name AS District,
                         COUNT(uol.id) AS No_of_entries,
                         SUM(CASE WHEN uol.visited = True THEN 1 ELSE 0 END) AS visited,
-                        SUM(uol.participants) AS participants
+                        IFNULL(SUM(uol.participants),0) AS participants
                     FROM
                         user_org_link uol
                         INNER JOIN organization o ON uol.org_id = o.id
                         RIGHT JOIN district d ON o.district_id = d.id
-                    GROUP BY
-                        d.name
-                    ORDER BY No_of_entries
+                    """
+        q2 = """\n
+        GROUP BY
+            d.name
+        ORDER BY No_of_entries
                     DESC
                     )
                     SELECT * FROM DistrictSummary"""
+        q = ""
+        if district_id:
+            q = f"\nWHERE d.id = '{district_id}' "
+        if zone_id:
+            q +=f"\nWHERE d.zone_id = '{zone_id}' " if not q.endswith(" ") else f"AND d.zone_id = '{zone_id}' "
+        if org_type:
+            q = f"\nWHERE o.org_type = '{org_type}' " if not q.endswith(" ") else f"AND d.org_type = {zone_id} "
+        
+        query = q1 + q + q2
         data = []
         with connection.cursor() as cursor:
             cursor.execute(query)
