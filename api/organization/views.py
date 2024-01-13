@@ -5,7 +5,8 @@ from utils.utils import ImportCSV, CommonUtils
 from db.models import Organization, UserOrgLink
 from utils.authentication import JWTUtils
 import json
-from django.db.models import Q
+from django.db.models import Q, Sum, Value
+from django.db.models.functions import Coalesce
 
 class OrganizationIdeaCountAPI(APIView):
 
@@ -24,18 +25,12 @@ class OrganizationIdeaCountAPI(APIView):
         if org_type:
             orgs = orgs.filter(org_type=org_type)
         
-        data = {
-            'pre_registration': 0,
-            'vos_completed': 0,
-            'group_formation': 0,
-            'idea_submissions': 0
-        }
-
-        for org in orgs:
-            data['pre_registration'] += org.pre_registration
-            data['vos_completed'] += org.vos_completed
-            data['group_formation'] += org.group_formation
-            data['idea_submissions'] += org.idea_submissions
+        data = orgs.aggregate(
+            pre_registration=Coalesce(Sum('pre_registration'),Value(0)),
+            vos_completed=Coalesce(Sum('vos_completed'),Value(0)),
+            group_formation=Coalesce(Sum('group_formation'),Value(0)),
+            idea_submissions=Coalesce(Sum('idea_submissions'),Value(0)),
+        )
         
         return CustomResponse(response=data).get_success_response()
 
