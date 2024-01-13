@@ -47,7 +47,8 @@ class OrganizationListAPI(APIView):
         zone_id = request.query_params.get('zone_id')
         district_id = request.query_params.get('district_id')
         org_type = request.query_params.get('org_type')
-
+        is_pagination = request.query_params.get('is_pagination', '').lower() in ('true','1')
+        
         orgs = Organization.objects.all()
         if zone_id:
             orgs = orgs.filter(district_id__zone_id=zone_id)
@@ -56,16 +57,18 @@ class OrganizationListAPI(APIView):
         if org_type:
             orgs = orgs.filter(org_type=org_type)
             
-        paginated_queryset = CommonUtils.get_paginated_queryset(
-            orgs, 
-            request, 
-            search_fields=['title', 'code'], 
-            sort_fields={'title': 'title', 'code': 'code'},
-            is_pagination=True
-        )
-
-        serializer = OrganizationSerializer(instance=paginated_queryset.get('queryset'), many=True)
-        return CustomResponse().paginated_response(data=serializer.data, pagination=paginated_queryset.get('pagination'))
+        if is_pagination:
+            paginated_queryset = CommonUtils.get_paginated_queryset(
+                orgs, 
+                request, 
+                search_fields=['title', 'code'], 
+                sort_fields={'title': 'title', 'code': 'code'},
+                is_pagination=True
+            )
+            serializer = OrganizationSerializer(instance=paginated_queryset.get('queryset'), many=True)
+            return CustomResponse().paginated_response(data=serializer.data, pagination=paginated_queryset.get('pagination'))
+        serializer = OrganizationSerializer(instance=orgs,many=True)
+        return CustomResponse(response=serializer.data).get_success_response()
 
 
 class OrganizationAPI(APIView):
