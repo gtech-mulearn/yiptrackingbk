@@ -98,6 +98,10 @@ class UserOrgLink(models.Model):
     created_by = models.ForeignKey('User', on_delete=models.CASCADE, null=False, blank=False,
                                    related_name='user_org_link_created_by', db_column='created_by')
     visited_at = models.DateTimeField(null=True, blank=True)
+    is_scheduled = models.BooleanField(null=False, blank=False, default=False)
+    scheduled_date = models.DateTimeField(null=True, blank=True)
+    orientation = models.BooleanField(null=False, blank=False, default=False)
+    orientation_date = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         managed = False
