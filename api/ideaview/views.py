@@ -1,8 +1,8 @@
 from rest_framework.views import APIView
-from db.models import Organization, UserOrgLink, District, Zone
+from db.models import Organization, User
 from utils.response import CustomResponse
 from utils.authentication import JWTUtils
-from django.db.models import Count, Sum, Value, IntegerField, Case, When, F
+from django.db.models import Count, Sum, Value, F
 from django.db.models.functions import Coalesce, Concat
 from utils.utils import ImportCSV,CommonUtils
 
@@ -18,13 +18,17 @@ class IdeaCountListAPI(APIView):
         data_type = data_type if data_type else 'organization'
         is_pagination = not (request.query_params.get('is_pagination', '').lower() in ('false','0'))
 
-        orgs = Organization.objects.all()
-        if zone_id:
-            orgs = orgs.filter(district_id__zone_id=zone_id)
-        if district_id:
-            orgs = orgs.filter(district_id=district_id)
-        if org_type:
-            orgs = orgs.filter(org_type=org_type)
+        if data_type == 'intern':
+            orgs = User.objects.filter()
+        else:
+            orgs = Organization.objects.all()
+            if zone_id:
+                orgs = orgs.filter(district_id__zone_id=zone_id)
+            if district_id:
+                orgs = orgs.filter(district_id=district_id)
+            if org_type:
+                orgs = orgs.filter(org_type=org_type)
+        
         if data_type == 'organization':
             data = orgs.values('id').annotate(
                 name=Concat(F('code'),Value(' - '),F('title')),
@@ -32,40 +36,43 @@ class IdeaCountListAPI(APIView):
                 vos_completed=Coalesce(Sum('vos_completed'),Value(0)),
                 group_formation=Coalesce(Sum('group_formation'),Value(0)),
                 idea_submissions=Coalesce(Sum('idea_submissions'),Value(0)),
-            ).values('name','pre_registration','vos_completed','group_formation','idea_submissions')
+            ).order_by('-idea_submissions').values('name','pre_registration','vos_completed','group_formation','idea_submissions')
         if data_type == 'district':
             data = orgs.values('district_id').annotate(
                 district=F('district_id__name'),
                 zone=F('district_id__zone_id__name'),
+                no_of_entries=Count('user_org_link_org_id'),
                 pre_registration=Coalesce(Sum('pre_registration'),Value(0)),
                 vos_completed=Coalesce(Sum('vos_completed'),Value(0)),
                 group_formation=Coalesce(Sum('group_formation'),Value(0)),
                 idea_submissions=Coalesce(Sum('idea_submissions'),Value(0)),
-            ).values('district','zone','pre_registration','vos_completed','group_formation','idea_submissions')
+            ).order_by('-no_of_entries').values('district','zone','no_of_entries','pre_registration','vos_completed','group_formation','idea_submissions')
         if data_type == 'zone':
             data = orgs.values('district_id__zone_id').annotate(
                 zone=F('district_id__zone_id__name'),
+                no_of_entries=Count('user_org_link_org_id'),
                 pre_registration=Coalesce(Sum('pre_registration'),Value(0)),
                 vos_completed=Coalesce(Sum('vos_completed'),Value(0)),
                 group_formation=Coalesce(Sum('group_formation'),Value(0)),
                 idea_submissions=Coalesce(Sum('idea_submissions'),Value(0)),
-            ).values('zone','pre_registration','vos_completed','group_formation','idea_submissions')
+            ).order_by('-no_of_entries').values('zone','no_of_entries','pre_registration','vos_completed','group_formation','idea_submissions')
         if data_type == 'intern':
-            data = UserOrgLink.objects.annotate(
-                email=F('user_id__email'),
-                full_name=Concat(F('user_id__first_name'), F('user_id__last_name')),
-                pre_registration=Coalesce(Sum('org_id__pre_registration'),Value(0)),
-                vos_completed=Coalesce(Sum('org_id__vos_completed'),Value(0)),
-                group_formation=Coalesce(Sum('org_id__group_formation'),Value(0)),
-                idea_submissions=Coalesce(Sum('org_id__idea_submissions'),Value(0)),
-            )
+            data = orgs.values('id').annotate(
+                email=F('email'),
+                full_name=Concat(F('first_name'), F('last_name')),
+                no_of_entries=Count('user_org_link_user_id'),
+                pre_registration=Coalesce(Sum('user_org_link_user_id__org_id__pre_registration'),Value(0)),
+                vos_completed=Coalesce(Sum('user_org_link_user_id__org_id__vos_completed'),Value(0)),
+                group_formation=Coalesce(Sum('user_org_link_user_id__org_id__group_formation'),Value(0)),
+                idea_submissions=Coalesce(Sum('user_org_link_user_id__org_id__idea_submissions'),Value(0)),
+            ).order_by('-no_of_entries')
             if org_type:
-                data = data.filter(org_id__org_type=org_type)
+                data = data.filter(user_org_link_user_id__org_id__org_type=org_type)
             if district_id:
-                data = data.filter(org_id__district_id=district_id)
+                data = orgs.filter(user_org_link_user_id__org_id__district_id=district_id)
             if zone_id:
-                data = data.filter(org_id__district_id__zone_id=zone_id)
-            data = data.values('full_name','email','pre_registration','vos_completed','group_formation','idea_submissions')
+                data = orgs.filter(user_org_link_user_id__org_id__district_id__zone_id=zone_id)
+            data = data.values('full_name','email','no_of_entries','pre_registration','vos_completed','group_formation','idea_submissions')
         if is_pagination:
             paginated_queryset = CommonUtils.get_paginated_queryset(
                 data, 
