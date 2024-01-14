@@ -5,8 +5,46 @@ from utils.utils import ImportCSV, CommonUtils
 from db.models import Organization, UserOrgLink
 from utils.authentication import JWTUtils
 import json
-from django.db.models import Q, Sum, Value
-from django.db.models.functions import Coalesce
+from django.db.models import Q, Sum, Value, F
+from django.db.models.functions import Coalesce, Concat
+from django.core.paginator import Page
+
+class UserIdeaViewCountAPI(APIView):
+    def get(self,request):
+        if not JWTUtils.is_jwt_authenticated(request):
+            return CustomResponse(general_message='Unauthorized').get_failure_response()
+        
+        is_pagination = not (request.query_params.get('is_pagination', '').lower() in ('false','0'))
+        org_type = request.query_params.get('org_type')
+        district_id = request.query_params.get('district_id')
+        zone_id = request.query_params.get('zone_id')
+
+        data = UserOrgLink.objects.annotate(
+            email=F('user_id__email'),
+            full_name=Concat(F('user_id__first_name'), F('user_id__last_name')),
+            pre_registration=Coalesce(Sum('org_id__pre_registration'),Value(0)),
+            vos_completed=Coalesce(Sum('org_id__vos_completed'),Value(0)),
+            group_formation=Coalesce(Sum('org_id__group_formation'),Value(0)),
+            idea_submissions=Coalesce(Sum('org_id__idea_submissions'),Value(0)),
+        )
+        if org_type:
+            data = data.filter(org_id__org_type=org_type)
+        if district_id:
+            data = data.filter(org_id__district_id=district_id)
+        if zone_id:
+            data = data.filter(org_id__district_id__zone_id=zone_id)
+        data = data.values('full_name','email','pre_registration','vos_completed','group_formation','idea_submissions')
+        
+        if is_pagination:
+            paginated_queryset : Page= CommonUtils.get_paginated_queryset(
+                data, 
+                request, 
+                search_fields=['full_name', 'email'], 
+                sort_fields={'full_name': 'full_name', 'email': 'email'},
+                is_pagination=True
+            )
+            return CustomResponse().paginated_response(data=list(paginated_queryset.get('queryset')), pagination=paginated_queryset.get('pagination'))
+        return CustomResponse(response=list(data)).get_success_response()
 
 class OrganizationIdeaCountAPI(APIView):
 

@@ -4,7 +4,7 @@ from db.models import Organization, UserOrgLink, User
 
 class OrganizationSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField()
-    
+    assigned_to = serializers.SerializerMethodField()
     class Meta:
         model = Organization
         fields = [
@@ -15,12 +15,16 @@ class OrganizationSerializer(serializers.ModelSerializer):
             'vos_completed',
             'group_formation',
             'idea_submissions',
+            'assigned_to'
         ]
 
 
     def get_name(self, obj):
         return f"{obj.code} - {obj.title}"
-
+    
+    def get_assigned_to(self, obj):
+        assigned =  UserOrgLink.objects.filter(org_id=obj.id).values_list('user_id__first_name','user_id__last_name').prefetch_related('user_id__first_name','user_id__last_name')
+        return ' '.join(assigned[0]) if len(assigned) > 0 else None
 
 class UserOrgVisitSerializer(serializers.ModelSerializer):
     user_id = serializers.CharField(read_only=True)
