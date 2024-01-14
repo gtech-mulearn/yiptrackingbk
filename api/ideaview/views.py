@@ -32,11 +32,13 @@ class IdeaCountListAPI(APIView):
         if data_type == 'organization':
             data = orgs.values('id').annotate(
                 name=Concat(F('code'),Value(' - '),F('title')),
+                assigned_to=Concat(F('user_org_link_org_id__user_id__first_name'),Value(' '),F('user_org_link_org_id__user_id__last_name')),
+                assigned_to_email=F('user_org_link_org_id__user_id__email'),
                 pre_registration=Coalesce(Sum('pre_registration'),Value(0)),
                 vos_completed=Coalesce(Sum('vos_completed'),Value(0)),
                 group_formation=Coalesce(Sum('group_formation'),Value(0)),
                 idea_submissions=Coalesce(Sum('idea_submissions'),Value(0)),
-            ).order_by('-idea_submissions').values('name','pre_registration','vos_completed','group_formation','idea_submissions')
+            ).order_by('-idea_submissions').values('name','pre_registration','vos_completed','group_formation','idea_submissions','assigned_to','assigned_to_email')
         if data_type == 'district':
             data = orgs.values('district_id').annotate(
                 district=F('district_id__name'),
