@@ -43,9 +43,12 @@ class UserOrgVisitSerializer(serializers.ModelSerializer):
             'association',
             'whatsapp',
             'participants',
+            'is_scheduled',
+            'orientation',
+            'orientation_date',
+            'scheduled_date',
             'visited_at',
         ]
-
 
 class UserOrgAssignSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(write_only=True)
