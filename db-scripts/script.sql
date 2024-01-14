@@ -90,8 +90,18 @@ ALTER TABLE user
 
 -- ALTER SCRIPTS 
 
+-- 1
+
 ALTER TABLE organization
     ADD COLUMN pre_registration BIGINT DEFAULT 0 NOT NULL AFTER district_id,
     ADD COLUMN vos_completed BIGINT DEFAULT 0 NOT NULL AFTER pre_registration,
     ADD COLUMN group_formation BIGINT DEFAULT 0 NOT NULL AFTER vos_completed,
     ADD COLUMN idea_submissions BIGINT DEFAULT 0 NOT NULL AFTER group_formation;
+
+-- 2
+
+ALTER TABLE user_org_link
+    ADD COLUMN orientation BOOLEAN DEFAULT FALSE AFTER participants,
+    ADD COLUMN is_scheduled BOOLEAN DEFAULT FALSE AFTER orientation,
+    ADD COLUMN orientation_date DATETIME AFTER orientation,
+    ADD COLUMN scheduled_date DATETIME AFTER orientation_date;

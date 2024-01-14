@@ -92,6 +92,10 @@ class UserSerializer(serializers.ModelSerializer):
                 'whatsapp': org.whatsapp,
                 'participants': org.participants,
                 'visited_at': org.visited_at,
+                'orientation': org.orientation,
+                'is_scheduled': org.is_scheduled,
+                'orientation_date': org.orientation_date,
+                'scheduled_date': org.scheduled_date,
                 'district_name': org.org_id.district_id.name,
                 'zone_name': org.org_id.district_id.zone_id.name,
             }
