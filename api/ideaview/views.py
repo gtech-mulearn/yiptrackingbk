@@ -169,7 +169,7 @@ class ImportOrgCSVAPI(APIView):
                     continue
                 return CustomResponse(general_message=f"Organization with code {row.get('code')} does not exist.").get_failure_response()
             return CustomResponse(general_message=f"Successfully imported {len(excel_data[1:])} rows.").get_success_response()
-        except Exception as e:
+        except:
             return CustomResponse(
                 general_message="Error occured while importing data."
             ).get_failure_response()
