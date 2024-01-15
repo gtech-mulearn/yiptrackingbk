@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from db.models import User
 from django.contrib.auth.hashers import make_password
-from db.models import UserOrgLink, Organization, District, Zone
+from db.models import UserOrgLink
 from utils.types import OrgType, Role
 from utils.utils import DateTimeUtils
 
