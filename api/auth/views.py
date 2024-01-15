@@ -15,6 +15,34 @@ from utils.utils import DateTimeUtils, CommonUtils
 from db.models import User
 from django.conf import settings
 
+class UserDeleteAPI(views.APIView):
+    def delete(self, request):
+        if not JWTUtils.is_jwt_authenticated(request):
+            return CustomResponse(general_message="Not logged in!").get_failure_response()
+        user_id = request.data.get('user_id')
+        if not user_id:
+            return CustomResponse(general_message="Invalid request, user id is required").get_failure_response()
+        user = User.objects.filter(id=user_id).first()
+        if not user:
+            return CustomResponse(general_message="User doesn't exists").get_failure_response()
+        user.delete()
+        return CustomResponse(general_message="User deleted successfully").get_success_response()
+
+class UserAssignDeleteAPI(views.APIView):
+    def delete(self,request):
+        if not JWTUtils.is_jwt_authenticated(request):
+            return CustomResponse(general_message="Not logged in!").get_failure_response()
+        user_id = request.data.get('user_id')
+        if not user_id:
+            return CustomResponse(general_message="Invalid request, user id is required").get_failure_response()
+        user = User.objects.filter(id=user_id).first()
+        if not user:
+            return CustomResponse(general_message="User doesn't exists").get_failure_response()
+        result = UserOrgLink.objects.filter(user_id=user_id)
+        assignment_count = result.count()
+        result.delete()
+        return CustomResponse(general_message=f"Deleted {assignment_count} user assignments.").get_success_response()
+    
 class PasswordResetAPI(views.APIView):
     def patch(self, request):
         user_id = JWTUtils.fetch_user_id(request)
