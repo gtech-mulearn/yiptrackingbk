@@ -1,8 +1,8 @@
 from rest_framework import serializers
 from db.models import User
 from django.contrib.auth.hashers import make_password
-from db.models import UserOrgLink, Organization, District, Zone
-from utils.types import OrgType
+from db.models import UserOrgLink
+from utils.types import OrgType, Role
 from utils.utils import DateTimeUtils
 
 class UserListSerializer(serializers.ModelSerializer):
@@ -28,18 +28,17 @@ class UserListSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     user_id = serializers.CharField(source='id', read_only=True)
-    password = serializers.CharField(write_only=True)
     assigned = serializers.SerializerMethodField(method_name='get_assigned')
     district_name = serializers.CharField(source='district_id.name', read_only=True, default=None)
     org_name = serializers.CharField(source='org_id.title', read_only=True, default=None)
     zone_name = serializers.CharField(source='district_id.zone_id.name', read_only=True, default=None)
-    created_by = serializers.CharField(write_only=True)
 
     def create(self, validated_data):
-        password = validated_data.pop("password")
+        password = f"yip@{validated_data['email']}"
         hashed_password = make_password(password)
         validated_data['password'] = hashed_password
-        validated_data['updated_by'] = validated_data['created_by']
+        validated_data['updated_by'] = validated_data['created_by'] = self.context.get('user_id')
+        validated_data['role'] = validated_data.get('role', Role.INTERN.value)
         return User.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
@@ -67,7 +66,6 @@ class UserSerializer(serializers.ModelSerializer):
             'role',
             'email',
             'mobile',
-            'password',
             'gender',
             'dob',
             'district_id',
@@ -75,8 +73,7 @@ class UserSerializer(serializers.ModelSerializer):
             'org_id',
             'org_name',
             'zone_name',
-            'assigned',
-            'created_by'
+            'assigned'
         ]
 
     def get_assigned(self, obj):

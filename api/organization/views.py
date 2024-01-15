@@ -70,7 +70,7 @@ class AssignOrganizationAPI(APIView):
         if serializer.is_valid():
             serializer.save()
             return CustomResponse(general_message='Successfuly Assigned Organization').get_success_response()
-        return CustomResponse(message=serializer.errors).get_failure_response()
+        return CustomResponse(response=serializer.errors).get_failure_response()
 
 
 class OrgVisitedAPI(APIView):
