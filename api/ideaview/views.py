@@ -154,19 +154,16 @@ class ImportOrgCSVAPI(APIView):
                 
             }
             valid_list = []
-            error_message = "Data not imported, Error with the following orgs :"
 
             for row in excel_data[1:]:
                 org = Organization.objects.filter(code=row.get('code')).first()
                 code = row.get('code')
                 if org is None:
                     has_error = True
-                    error_message += f"{' 'if error_message.endswith(':') else ', '}'{code}'"
                     error_list[code] = f"Organization with code '{code}' doesnt exist"
                     continue
                 if error_list.get(code) or code in valid_list:
                     has_error = True
-                    error_message += f"{' 'if error_message.endswith(':') else ', '}'{code}'"
                     error_list[code] = f'Duplicate entry for code \'{code}\''
                     valid_list.remove(code)
                     continue
