@@ -100,7 +100,10 @@ class UserRegisterAPI(views.APIView):
         return CustomResponse(message=serializer.data).get_success_response()
 
     def post(self, request):
-        serializer = UserSerializer(data=request.data)
+        if not JWTUtils.is_jwt_authenticated(request):
+            return CustomResponse(general_message="Not logged in!").get_failure_response()
+        user_id = JWTUtils.fetch_user_id(request)
+        serializer = UserSerializer(data=request.data,context={'user_id': user_id})
         if not serializer.is_valid():
             return CustomResponse(general_message="Invalid Request", message=serializer.errors).get_failure_response()
         serializer.save()
