@@ -147,8 +147,17 @@ class ImportOrgCSVAPI(APIView):
                 ).get_failure_response()
 
         excel_data = [row for row in excel_data if any(row.values())]
-        # print(json.dumps(excel_data, indent=4))
+
         try:
+            has_error = False
+            error_message = "Data not imported, Organization with the following code doesnt exist :"
+            for row in excel_data[1:]:
+                org = Organization.objects.filter(code=row.get('code')).first()
+                if org is None:
+                    has_error = True
+                    error_message += f"{' 'if error_message.endswith(':') else ', '}'{row.get('code')}'"
+            if has_error:
+                return CustomResponse(general_message=error_message).get_failure_response()
             for row in excel_data[1:]:
                 org = Organization.objects.filter(code=row.get('code')).first()
                 if org:
@@ -160,7 +169,7 @@ class ImportOrgCSVAPI(APIView):
                     continue
                 return CustomResponse(general_message=f"Organization with code {row.get('code')} does not exist.").get_failure_response()
             return CustomResponse(general_message=f"Successfully imported {len(excel_data[1:])} rows.").get_success_response()
-        except:
+        except Exception as e:
             return CustomResponse(
                 general_message="Error occured while importing data."
             ).get_failure_response()
