@@ -28,14 +28,13 @@ class UserListSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     user_id = serializers.CharField(source='id', read_only=True)
-    password = serializers.CharField(write_only=True)
     assigned = serializers.SerializerMethodField(method_name='get_assigned')
     district_name = serializers.CharField(source='district_id.name', read_only=True, default=None)
     org_name = serializers.CharField(source='org_id.title', read_only=True, default=None)
     zone_name = serializers.CharField(source='district_id.zone_id.name', read_only=True, default=None)
 
     def create(self, validated_data):
-        password = validated_data.pop("password")
+        password = f"yip@{validated_data['email']}"
         hashed_password = make_password(password)
         validated_data['password'] = hashed_password
         validated_data['updated_by'] = validated_data['created_by'] = self.context.get('user_id')
@@ -67,7 +66,6 @@ class UserSerializer(serializers.ModelSerializer):
             'role',
             'email',
             'mobile',
-            'password',
             'gender',
             'dob',
             'district_id',
