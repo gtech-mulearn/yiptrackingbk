@@ -147,8 +147,30 @@ class ImportOrgCSVAPI(APIView):
                 ).get_failure_response()
 
         excel_data = [row for row in excel_data if any(row.values())]
-        # print(json.dumps(excel_data, indent=4))
+
         try:
+            has_error = False
+            error_list = {
+                
+            }
+            valid_list = []
+
+            for row in excel_data[1:]:
+                org = Organization.objects.filter(code=row.get('code')).first()
+                code = row.get('code')
+                if org is None:
+                    has_error = True
+                    error_list[code] = f"Organization with code '{code}' doesnt exist"
+                    continue
+                if error_list.get(code) or code in valid_list:
+                    has_error = True
+                    error_list[code] = f'Duplicate entry for code \'{code}\''
+                    valid_list.remove(code)
+                    continue
+                valid_list.append(code)
+            
+            if has_error:
+                return CustomResponse(general_message='\n'.join(error_list.values())).get_failure_response()
             for row in excel_data[1:]:
                 org = Organization.objects.filter(code=row.get('code')).first()
                 if org:
