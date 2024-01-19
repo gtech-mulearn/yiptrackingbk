@@ -28,7 +28,12 @@ class IdeaCountListAPI(APIView):
                 orgs = orgs.filter(district_id=district_id)
             if org_type:
                 orgs = orgs.filter(org_type=org_type)
-        
+        sort_fields={
+            'pre_registration':'pre_registration',
+            'vos_completed':'vos_completed',
+            'group_formation':'group_formation',
+            'idea_submissions':'idea_submissions'
+        }
         if data_type == 'organization':
             data = orgs.values('id').annotate(
                 name=Concat(F('code'),Value(' - '),F('title')),
@@ -39,6 +44,8 @@ class IdeaCountListAPI(APIView):
                 group_formation=Coalesce(Sum('group_formation'),Value(0)),
                 idea_submissions=Coalesce(Sum('idea_submissions'),Value(0)),
             ).order_by('-idea_submissions').values('name','pre_registration','vos_completed','group_formation','idea_submissions','assigned_to','assigned_to_email')
+            sort_fields['name'] = 'name'
+            sort_fields['assigned_to'] = 'assigned_to'
         if data_type == 'district':
             data = orgs.values('district_id').annotate(
                 district=F('district_id__name'),
@@ -49,6 +56,8 @@ class IdeaCountListAPI(APIView):
                 group_formation=Coalesce(Sum('group_formation'),Value(0)),
                 idea_submissions=Coalesce(Sum('idea_submissions'),Value(0)),
             ).order_by('-no_of_entries').values('district','zone','no_of_entries','pre_registration','vos_completed','group_formation','idea_submissions')
+            sort_fields['district'] = 'district'
+            sort_fields['no_of_entries'] = 'no_of_entries'
         if data_type == 'zone':
             data = orgs.values('district_id__zone_id').annotate(
                 zone=F('district_id__zone_id__name'),
@@ -58,6 +67,8 @@ class IdeaCountListAPI(APIView):
                 group_formation=Coalesce(Sum('group_formation'),Value(0)),
                 idea_submissions=Coalesce(Sum('idea_submissions'),Value(0)),
             ).order_by('-no_of_entries').values('zone','no_of_entries','pre_registration','vos_completed','group_formation','idea_submissions')
+            sort_fields['zone'] = 'zone'
+            sort_fields['no_of_entries'] = 'no_of_entries'
         if data_type == 'intern':
             data = orgs.values('id').annotate(
                 email=F('email'),
@@ -75,17 +86,15 @@ class IdeaCountListAPI(APIView):
             if zone_id:
                 data = orgs.filter(user_org_link_user_id__org_id__district_id__zone_id=zone_id)
             data = data.values('full_name','email','no_of_entries','pre_registration','vos_completed','group_formation','idea_submissions')
+            sort_fields['full_name']='full_name'
+            sort_fields['email']='email'
+            sort_fields['no_of_entries']='no_of_entries'
         if is_pagination:
             paginated_queryset = CommonUtils.get_paginated_queryset(
                 data, 
                 request, 
                 search_fields=[], 
-                sort_fields={
-                    'pre_registration':'pre_registration',
-                    'vos_completed':'vos_completed',
-                    'group_formation':'group_formation',
-                    'idea_submissions':'idea_submissions'
-                },
+                sort_fields=sort_fields,
                 is_pagination=True
             )
             return CustomResponse().paginated_response(data=list(paginated_queryset.get('queryset')), pagination=paginated_queryset.get('pagination'))
