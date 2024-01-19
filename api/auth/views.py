@@ -76,7 +76,7 @@ class UserListAPI(views.APIView):
             request=request,
             search_fields=['first_name', 'last_name', 'email', 'mobile'],
             sort_fields={'first_name': 'first_name', 'last_name': 'last_name', 'email': 'email', 'mobile': 'mobile',
-                         'created_at': 'created_at', 'updated_at': 'updated_at'},
+                         'created_at': 'created_at', 'updated_at': 'updated_at','role':'role'},
         )
 
         serializer = UserListSerializer(instance=paginated_queryset.get('queryset'), many=True)
