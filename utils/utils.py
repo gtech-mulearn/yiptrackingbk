@@ -122,7 +122,7 @@ class DateTimeUtils:
         return start_date, end_date
 
 
-class ImportCSV:
+class CSVUtils:
     def read_excel_file(self, file_obj):
         workbook = openpyxl.load_workbook(filename=io.BytesIO(file_obj.read()))
         sheet = workbook.active
@@ -136,3 +136,22 @@ class ImportCSV:
         workbook.close()
 
         return rows
+    @staticmethod
+    def generate_csv(queryset: QuerySet, csv_name: str) -> HttpResponse:
+        response = HttpResponse(content_type="text/csv")
+        response["Content-Disposition"] = f'attachment; filename="{csv_name}.csv"'
+        fieldnames = list(queryset[0].keys())
+        writer = csv.DictWriter(response, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(queryset)
+
+        compressed_response = HttpResponse(
+            gzip.compress(response.content),
+            content_type="text/csv",
+        )
+        compressed_response[
+            "Content-Disposition"
+        ] = f'attachment; filename="{csv_name}.csv"'
+        compressed_response["Content-Encoding"] = "gzip"
+
+        return compressed_response
