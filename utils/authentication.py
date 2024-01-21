@@ -162,12 +162,10 @@ class JWTUtils:
 def role_required(roles):
     def decorator(view_func):
         def wrapped_view_func(obj, request, *args, **kwargs):
-            roles = JWTUtils.fetch_role(request) 
-            roles = roles if roles else []
-            for role in roles:
-                if role in roles:
-                    response = view_func(obj, request, *args, **kwargs)
-                    return response
+            usr_role = JWTUtils.fetch_role(request)
+            if usr_role in roles:
+                response = view_func(obj, request, *args, **kwargs)
+                return response
             res = CustomResponse(
                 general_message="You do not have the required role to access this page."
             ).get_failure_response()
