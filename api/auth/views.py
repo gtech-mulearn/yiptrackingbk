@@ -28,6 +28,8 @@ class UserDeleteAPI(views.APIView):
         user = User.objects.filter(id=user_id).first()
         if not user:
             return CustomResponse(general_message="User doesn't exists").get_failure_response()
+        if user.role != Role.INTERN.value:
+            return CustomResponse(general_message="Only interns can be deleted").get_failure_response()
         user.delete()
         return CustomResponse(general_message="User deleted successfully").get_success_response()
 
