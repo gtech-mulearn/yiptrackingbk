@@ -1,5 +1,5 @@
 from rest_framework.views import APIView
-from .serializers import OrganizationSerializer, UserOrgAssignSerializer, UserOrgVisitSerializer
+from .serializers import OrganizationSerializer, UserOrgAssignSerializer, UserOrgVisitSerializer, OrganizationCreateSerializer
 from utils.response import CustomResponse
 from utils.utils import CommonUtils
 from db.models import Organization, UserOrgLink
@@ -52,7 +52,7 @@ class OrganizationAPI(APIView):
         user_id = JWTUtils.fetch_user_id(request)
         if not user_id:
             return CustomResponse(general_message='Unauthorized').get_failure_response()
-        serializer = OrganizationSerializer(data=request.data, context={'user_id': user_id})
+        serializer = OrganizationCreateSerializer(data=request.data, context={'user_id': user_id})
         if serializer.is_valid():
             serializer.save()
             return CustomResponse(general_message='Organziation created successfully').get_success_response()
