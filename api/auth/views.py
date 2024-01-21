@@ -14,8 +14,11 @@ from utils.authentication import generate_jwt, JWTUtils
 from utils.utils import DateTimeUtils, CommonUtils
 from db.models import User
 from django.conf import settings
+from utils.authentication import role_required
+from utils.types import Role
 
 class UserDeleteAPI(views.APIView):
+    @role_required(roles=[Role.ADMIN.value])
     def delete(self, request):
         if not JWTUtils.is_jwt_authenticated(request):
             return CustomResponse(general_message="Not logged in!").get_failure_response()
@@ -29,6 +32,7 @@ class UserDeleteAPI(views.APIView):
         return CustomResponse(general_message="User deleted successfully").get_success_response()
 
 class UserAssignDeleteAPI(views.APIView):
+    @role_required(roles=[Role.ADMIN.value,Role.DISTRICT_COORDINATOR.value,Role.ZONE_COORDINATOR.value])
     def delete(self,request):
         if not JWTUtils.is_jwt_authenticated(request):
             return CustomResponse(general_message="Not logged in!").get_failure_response()
