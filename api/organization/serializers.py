@@ -1,6 +1,20 @@
 from rest_framework import serializers
 from db.models import Organization, UserOrgLink, User
 
+class OrganizationCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Organization
+        fields = [
+            'id',
+            'title',
+            'code'
+        ]
+    def create(self, validated_data):
+        user_id = self.context.get('user_id')
+        user = User.objects.filter(id=user_id).first()
+        validated_data['created_by'] = user
+        validated_data['updated_by'] = user
+        return Organization.objects.create(**validated_data)
 
 class OrganizationSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField()

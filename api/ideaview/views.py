@@ -169,9 +169,7 @@ class ImportOrgCSVAPI(APIView):
 
         try:
             has_error = False
-            error_list = {
-                
-            }
+            error_list = {}
             valid_list = []
 
             for row in excel_data[1:]:
@@ -193,10 +191,10 @@ class ImportOrgCSVAPI(APIView):
             for row in excel_data[1:]:
                 org = Organization.objects.filter(code=row.get('code')).first()
                 if org:
-                    org.pre_registration += row.get('pre_registration')
-                    org.vos_completed += row.get('vos_completed')
-                    org.group_formation += row.get('group_formation')
-                    org.idea_submissions += row.get('idea_submissions')
+                    org.pre_registration = row.get('pre_registration')
+                    org.vos_completed = row.get('vos_completed')
+                    org.group_formation = row.get('group_formation')
+                    org.idea_submissions = row.get('idea_submissions')
                     org.save()
                     continue
                 return CustomResponse(general_message=f"Organization with code {row.get('code')} does not exist.").get_failure_response()
