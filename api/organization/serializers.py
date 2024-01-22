@@ -7,7 +7,9 @@ class OrganizationCreateSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'title',
-            'code'
+            'code',
+            'district_id',
+            'org_type'
         ]
     def create(self, validated_data):
         user_id = self.context.get('user_id')
