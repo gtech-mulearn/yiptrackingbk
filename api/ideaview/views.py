@@ -35,6 +35,7 @@ class IdeaCountListAPI(APIView):
             'group_formation':'group_formation',
             'idea_submissions':'idea_submissions'
         }
+        search_fields = []
         if data_type == 'organization':
             data = orgs.values('id').annotate(
                 name=Concat(F('code'),Value(' - '),F('title')),
@@ -47,6 +48,7 @@ class IdeaCountListAPI(APIView):
             ).order_by('-idea_submissions').values('name','pre_registration','vos_completed','group_formation','idea_submissions','assigned_to','assigned_to_email')
             sort_fields['name'] = 'name'
             sort_fields['assigned_to'] = 'assigned_to'
+            search_fields = ['name','assigned_to','assigned_to_email']
         if data_type == 'district':
             data = orgs.values('district_id').annotate(
                 district=F('district_id__name'),
@@ -59,6 +61,7 @@ class IdeaCountListAPI(APIView):
             ).order_by('-no_of_entries').values('district','zone','no_of_entries','pre_registration','vos_completed','group_formation','idea_submissions')
             sort_fields['district'] = 'district'
             sort_fields['no_of_entries'] = 'no_of_entries'
+            search_fields = ['district','zone']
         if data_type == 'zone':
             data = orgs.values('district_id__zone_id').annotate(
                 zone=F('district_id__zone_id__name'),
@@ -70,6 +73,7 @@ class IdeaCountListAPI(APIView):
             ).order_by('-no_of_entries').values('zone','no_of_entries','pre_registration','vos_completed','group_formation','idea_submissions')
             sort_fields['zone'] = 'zone'
             sort_fields['no_of_entries'] = 'no_of_entries'
+            search_fields = ['zone']
         if data_type == 'intern':
             data = orgs.values('id').annotate(
                 email=F('email'),
@@ -90,6 +94,7 @@ class IdeaCountListAPI(APIView):
             sort_fields['full_name']='full_name'
             sort_fields['email']='email'
             sort_fields['no_of_entries']='no_of_entries'
+            search_fields = ['full_name','email']
         if csv:
             paginated_queryset = CommonUtils.get_paginated_queryset(
                 data, 
@@ -103,7 +108,7 @@ class IdeaCountListAPI(APIView):
             paginated_queryset = CommonUtils.get_paginated_queryset(
                 data, 
                 request, 
-                search_fields=[], 
+                search_fields=search_fields, 
                 sort_fields=sort_fields,
                 is_pagination=True
             )
