@@ -95,9 +95,10 @@ class IdeaCountListAPI(APIView):
                 data = orgs.filter(user_org_link_user_id__org_id__district_id=district_id)
             if zone_id:
                 data = orgs.filter(user_org_link_user_id__org_id__district_id__zone_id=zone_id)
-            data = data.values('full_name', 'email', 'no_of_entries', 'pre_registration', 'vos_completed',
+            data = data.values('full_name', 'district', 'email', 'no_of_entries', 'pre_registration', 'vos_completed',
                                'group_formation', 'idea_submissions')
             sort_fields['full_name'] = 'full_name'
+            sort_fields['district'] = 'district'
             sort_fields['email'] = 'email'
             sort_fields['no_of_entries'] = 'no_of_entries'
             search_fields = ['full_name', 'email']
