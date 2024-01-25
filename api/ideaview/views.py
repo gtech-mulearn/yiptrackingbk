@@ -41,13 +41,14 @@ class IdeaCountListAPI(APIView):
                 name=Concat(F('code'), Value(' - '), F('title')),
                 assigned_to=Concat(F('user_org_link_org_id__user_id__first_name'), Value(' '),
                                    F('user_org_link_org_id__user_id__last_name')),
+                district=F('district_id__name'),
                 assigned_to_email=F('user_org_link_org_id__user_id__email'),
                 pre_registration=Coalesce(Sum('pre_registration'), Value(0)),
                 vos_completed=Coalesce(Sum('vos_completed'), Value(0)),
                 group_formation=Coalesce(Sum('group_formation'), Value(0)),
                 idea_submissions=Coalesce(Sum('idea_submissions'), Value(0)),
             ).order_by('-idea_submissions').values('name', 'pre_registration', 'vos_completed', 'group_formation',
-                                                   'idea_submissions', 'assigned_to', 'assigned_to_email')
+                                                   'idea_submissions', 'assigned_to', 'assigned_to_email', 'district')
             sort_fields['name'] = 'name'
             sort_fields['assigned_to'] = 'assigned_to'
             search_fields = ['name', 'assigned_to', 'assigned_to_email']
