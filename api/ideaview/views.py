@@ -41,6 +41,7 @@ class IdeaCountListAPI(APIView):
                 name=Concat(F('code'), Value(' - '), F('title')),
                 assigned_to=Concat(F('user_org_link_org_id__user_id__first_name'), Value(' '),
                                    F('user_org_link_org_id__user_id__last_name')),
+                district=F('district_id__name'),
                 assigned_to_email=F('user_org_link_org_id__user_id__email'),
                 pre_registration=Coalesce(Sum('pre_registration'), Value(0)),
                 vos_completed=Coalesce(Sum('vos_completed'), Value(0)),
