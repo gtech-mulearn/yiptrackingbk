@@ -18,7 +18,7 @@ from utils.authentication import role_required
 from utils.types import Role
 
 class UserDeleteAPI(views.APIView):
-    @role_required(roles=[Role.ADMIN.value])
+    @role_required(roles=[Role.ADMIN.value,Role.DISTRICT_COORDINATOR.value,Role.ZONE_COORDINATOR.value])
     def delete(self, request):
         if not JWTUtils.is_jwt_authenticated(request):
             return CustomResponse(general_message="Not logged in!").get_failure_response()
