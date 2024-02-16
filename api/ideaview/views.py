@@ -150,7 +150,6 @@ class ImportOrgCSVAPI(APIView):
 
         excel_data = CSVUtils()
         excel_data = excel_data.read_excel_file(file_obj)
-
         if not excel_data:
             return CustomResponse(
                 general_message="Empty csv file."
@@ -171,16 +170,15 @@ class ImportOrgCSVAPI(APIView):
                 ).get_failure_response()
 
         excel_data = [row for row in excel_data if any(row.values())]
-
         try:
             has_error = False
             error_list = {}
             valid_list = []
 
+            codes = list(Organization.objects.values_list('code', flat=True))
             for row in excel_data[1:]:
-                org = Organization.objects.filter(code=row.get('code')).first()
                 code = row.get('code')
-                if org is None:
+                if code not in codes:
                     has_error = True
                     error_list[code] = f"Organization with code '{code}' doesnt exist"
                     continue
@@ -194,15 +192,12 @@ class ImportOrgCSVAPI(APIView):
             if has_error:
                 return CustomResponse(general_message='\n'.join(error_list.values())).get_failure_response()
             for row in excel_data[1:]:
-                org = Organization.objects.filter(code=row.get('code')).first()
-                if org:
-                    org.pre_registration = row.get('pre_registration')
-                    org.vos_completed = row.get('vos_completed')
-                    org.group_formation = row.get('group_formation')
-                    org.idea_submissions = row.get('idea_submissions')
-                    org.save()
-                    continue
-                return CustomResponse(general_message=f"Organization with code {row.get('code')} does not exist.").get_failure_response()
+                Organization.objects.filter(code=row.get('code')).update(
+                    pre_registration=row.get('pre_registration'),
+                    vos_completed=row.get('vos_completed'),
+                    group_formation=row.get('group_formation'),
+                    idea_submissions=row.get('idea_submissions')
+                )
             return CustomResponse(general_message=f"Successfully imported {len(excel_data[1:])} rows.").get_success_response()
         except:
             return CustomResponse(
