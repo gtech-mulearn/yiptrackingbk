@@ -129,6 +129,7 @@ class CSVUtils:
 
         rows = []
         for row in sheet.iter_rows(values_only=True):
+            if all(value is None for value in row):break
             row_dict = {
                 header.value: cell_value for header, cell_value in zip(sheet[1], row)
             }
