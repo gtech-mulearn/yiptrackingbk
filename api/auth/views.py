@@ -1,8 +1,6 @@
 from rest_framework import views
 from .serializers import *
-from db.models import User
 from django.http import HttpRequest
-from utils.response import CustomResponse
 import decouple
 import jwt
 from datetime import timedelta
@@ -12,13 +10,14 @@ from django.db.models import Q
 from utils.response import CustomResponse
 from utils.authentication import generate_jwt, JWTUtils
 from utils.utils import DateTimeUtils, CommonUtils
-from db.models import User
+from db.models import User, Organization, UserOrgLink
 from django.conf import settings
 from utils.authentication import role_required
 from utils.types import Role
 
+
 class UserDeleteAPI(views.APIView):
-    @role_required(roles=[Role.ADMIN.value])
+    @role_required(roles=[Role.ADMIN.value,Role.DISTRICT_COORDINATOR.value,Role.ZONE_COORDINATOR.value])
     def delete(self, request):
         if not JWTUtils.is_jwt_authenticated(request):
             return CustomResponse(general_message="Not logged in!").get_failure_response()
@@ -33,22 +32,29 @@ class UserDeleteAPI(views.APIView):
         user.delete()
         return CustomResponse(general_message="User deleted successfully").get_success_response()
 
+
 class UserAssignDeleteAPI(views.APIView):
-    @role_required(roles=[Role.ADMIN.value,Role.DISTRICT_COORDINATOR.value,Role.ZONE_COORDINATOR.value])
-    def delete(self,request):
+    @role_required(roles=[Role.ADMIN.value, Role.DISTRICT_COORDINATOR.value, Role.ZONE_COORDINATOR.value])
+    def delete(self, request):
         if not JWTUtils.is_jwt_authenticated(request):
             return CustomResponse(general_message="Not logged in!").get_failure_response()
         user_id = request.data.get('user_id')
+        org_id = request.data.get('org_id')
         if not user_id:
             return CustomResponse(general_message="Invalid request, user id is required").get_failure_response()
         user = User.objects.filter(id=user_id).first()
         if not user:
             return CustomResponse(general_message="User doesn't exists").get_failure_response()
-        result = UserOrgLink.objects.filter(user_id=user_id)
-        assignment_count = result.count()
+        if not org_id:
+            return CustomResponse(general_message="Invalid request, org id is required").get_failure_response()
+        org = Organization.objects.filter(id=org_id).first()
+        if not org:
+            return CustomResponse(general_message="Organization doesn't exists").get_failure_response()
+        result = UserOrgLink.objects.filter(user_id=user_id, org_id=org_id).first()
         result.delete()
-        return CustomResponse(general_message=f"Deleted {assignment_count} user assignments.").get_success_response()
-    
+        return CustomResponse(general_message="Deleted").get_success_response()
+
+
 class PasswordResetAPI(views.APIView):
     def patch(self, request):
         user_id = JWTUtils.fetch_user_id(request)
@@ -67,6 +73,7 @@ class PasswordResetAPI(views.APIView):
         else:
             return CustomResponse(general_message="Invalid user").get_failure_response()
 
+
 class UserListAPI(views.APIView):
     def get(self, request):
         users = User.objects.all()
@@ -76,17 +83,19 @@ class UserListAPI(views.APIView):
             q2 = Q(last_name__icontains=search_query)
             q3 = Q(email__icontains=search_query)
             users = users.filter(q1 | q2 | q3)
-        
+
         paginated_queryset = CommonUtils.get_paginated_queryset(
             queryset=users,
             request=request,
             search_fields=['first_name', 'last_name', 'email', 'mobile'],
             sort_fields={'first_name': 'first_name', 'last_name': 'last_name', 'email': 'email', 'mobile': 'mobile',
-                         'created_at': 'created_at', 'updated_at': 'updated_at','role':'role'},
+                         'created_at': 'created_at', 'updated_at': 'updated_at', 'role': 'role'},
         )
 
         serializer = UserListSerializer(instance=paginated_queryset.get('queryset'), many=True)
-        return CustomResponse().paginated_response(data=serializer.data, pagination=paginated_queryset.get('pagination'))
+        return CustomResponse().paginated_response(data=serializer.data,
+                                                   pagination=paginated_queryset.get('pagination'))
+
 
 class UserRegisterAPI(views.APIView):
     def get(self, request):
@@ -109,25 +118,25 @@ class UserRegisterAPI(views.APIView):
         if not JWTUtils.is_jwt_authenticated(request):
             return CustomResponse(general_message="Not logged in!").get_failure_response()
         user_id = JWTUtils.fetch_user_id(request)
-        serializer = UserSerializer(data=request.data,context={'user_id': user_id})
+        serializer = UserSerializer(data=request.data, context={'user_id': user_id})
         if not serializer.is_valid():
             return CustomResponse(general_message="Invalid Request", message=serializer.errors).get_failure_response()
         serializer.save()
         return CustomResponse(general_message='User created successfully').get_success_response()
 
-    def put(self, request:HttpRequest ):
+    def put(self, request: HttpRequest):
         user_id = JWTUtils.fetch_user_id(request)
         if not user_id:
             return CustomResponse(general_message="Unauthorized").get_failure_response()
         instance = User.objects.filter(id=user_id).first()
         if instance == None:
             return CustomResponse(general_message='User not found').get_failure_response()
-        serializer = UserSerializer(instance=instance,data=request.data,partial=True,context={'user_id': user_id})
-        if serializer.is_valid():  
+        serializer = UserSerializer(instance=instance, data=request.data, partial=True, context={'user_id': user_id})
+        if serializer.is_valid():
             serializer.save()
             return CustomResponse(general_message='User updated successfully').get_success_response()
         else:
-            return CustomResponse(general_message="Invalid data!",message=serializer.errors).get_failure_response()
+            return CustomResponse(general_message="Invalid data!", message=serializer.errors).get_failure_response()
 
 
 class UserAuthenticationAPI(APIView):
@@ -167,7 +176,8 @@ class GetAccessToken(APIView):
             if not user:
                 return CustomResponse(general_message="User invalid").get_failure_response(1004)
 
-            access_expiry_time = DateTimeUtils.get_current_utc_time() + timedelta(hours=settings.JWT_CONF['TOKEN_LIFETIME_HOURS'])  # 3 hour
+            access_expiry_time = DateTimeUtils.get_current_utc_time() + timedelta(
+                hours=settings.JWT_CONF['TOKEN_LIFETIME_HOURS'])  # 3 hour
             access_expiry = access_expiry_time.strftime("%Y-%m-%d %H:%M:%S%z")
             access_token = jwt.encode(
                 {
