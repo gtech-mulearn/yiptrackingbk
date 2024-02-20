@@ -5,6 +5,8 @@ from utils.authentication import JWTUtils
 from django.db.models import Count, Sum, Value, F
 from django.db.models.functions import Coalesce, Concat
 from utils.utils import CSVUtils, CommonUtils, DateTimeUtils
+from utils.types import OrgType
+from django.db.models import Q
 
 
 class IdeaCountListAPI(APIView):
@@ -28,7 +30,11 @@ class IdeaCountListAPI(APIView):
             if district_id:
                 orgs = orgs.filter(district_id=district_id)
             if org_type:
-                orgs = orgs.filter(org_type=org_type)
+                if org_type == OrgType.COLLEGE.value or org_type == OrgType.ITI.value:
+                    q = Q(org_type=OrgType.COLLEGE.value) | Q(org_type=OrgType.ITI.value)
+                    orgs = orgs.filter(q)
+                else:
+                    orgs = orgs.filter(org_type=org_type)
         sort_fields = {
             'pre_registration': 'pre_registration',
             'vos_completed': 'vos_completed',
@@ -139,7 +145,11 @@ class TotalIdeaCountAPI(APIView):
         if district_id:
             orgs = orgs.filter(district_id=district_id)
         if org_type:
-            orgs = orgs.filter(org_type=org_type)
+            if org_type == OrgType.COLLEGE.value or org_type == OrgType.ITI.value:
+                q = Q(org_type=OrgType.COLLEGE.value) | Q(org_type=OrgType.ITI.value)
+                orgs = orgs.filter(q)
+            else:
+                orgs = orgs.filter(org_type=org_type)
         data = orgs.aggregate(
             pre_registration=Coalesce(Sum('pre_registration'), Value(0)),
             vos_completed=Coalesce(Sum('vos_completed'), Value(0)),

@@ -101,11 +101,11 @@ class UserSerializer(serializers.ModelSerializer):
 
         data = {
             'college': [append_org_data(org, OrgType.COLLEGE.value) for org in assigned_orgs if
-                        org.org_id.org_type == OrgType.COLLEGE.value],
+                        org.org_id.org_type == OrgType.COLLEGE.value or org.org_id.org_type == OrgType.ITI.value],
             'school': [append_org_data(org, OrgType.SCHOOL.value) for org in assigned_orgs if
                        org.org_id.org_type == OrgType.SCHOOL.value],
-            'iti': [append_org_data(org, OrgType.ITI.value) for org in assigned_orgs if
-                    org.org_id.org_type == OrgType.ITI.value]
+            # 'iti': [append_org_data(org, OrgType.ITI.value) for org in assigned_orgs if
+            #         org.org_id.org_type == OrgType.ITI.value]
         }
 
         return data
