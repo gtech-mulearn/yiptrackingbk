@@ -5,7 +5,7 @@ from utils.utils import CommonUtils
 from db.models import Organization, UserOrgLink
 from utils.authentication import JWTUtils
 from django.db.models import Q
-
+from utils.types import OrgType
 class OrganizationListAPI(APIView):
 
     def get(self,request):
@@ -22,7 +22,11 @@ class OrganizationListAPI(APIView):
         if district_id:
             orgs = orgs.filter(district_id=district_id)
         if org_type:
-            orgs = orgs.filter(org_type=org_type)
+            if org_type == OrgType.COLLEGE.value or org_type == OrgType.ITI.value:
+                q = Q(org_type=OrgType.COLLEGE.value) | Q(org_type=OrgType.ITI.value)
+                orgs = orgs.filter(q)
+            else:
+                orgs = orgs.filter(org_type=org_type)
             
         if is_pagination:
             paginated_queryset = CommonUtils.get_paginated_queryset(
