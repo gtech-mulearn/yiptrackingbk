@@ -198,7 +198,7 @@ class ImportOrgCSVAPI(APIView):
 
             codes = list(Organization.objects.values_list('code', flat=True))
             for row in excel_data[1:]:
-                code = row.get('code')
+                code = str(row.get('code'))
                 if code not in codes:
                     has_error = True
                     error_list[code] = f"Organization with code '{code}' doesnt exist"
@@ -213,7 +213,7 @@ class ImportOrgCSVAPI(APIView):
             if has_error:
                 return CustomResponse(general_message='\n'.join(error_list.values())).get_failure_response()
             for row in excel_data[1:]:
-                Organization.objects.filter(code=row.get('code')).update(
+                Organization.objects.filter(code=str(row.get('code'))).update(
                     pre_registration=row.get('pre_registration'),
                     vos_completed=row.get('vos_completed'),
                     group_formation=row.get('group_formation'),
