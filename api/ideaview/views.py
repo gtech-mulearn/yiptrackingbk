@@ -86,6 +86,16 @@ class IdeaCountListAPI(APIView):
             sort_fields['no_of_entries'] = 'no_of_entries'
             search_fields = ['zone']
         if data_type == 'intern':
+            if org_type:
+                if org_type == OrgType.COLLEGE.value or org_type == OrgType.ITI.value:
+                    q = Q(user_org_link_user_id__org_id__org_type=OrgType.COLLEGE.value) | Q(user_org_link_user_id__org_id__org_type=OrgType.ITI.value)
+                    orgs = orgs.filter(q)
+                else:
+                    orgs = orgs.filter(user_org_link_user_id__org_id__org_type=org_type)
+            if district_id:
+                data = orgs.filter(user_org_link_user_id__org_id__district_id=district_id)
+            if zone_id:
+                data = orgs.filter(user_org_link_user_id__org_id__district_id__zone_id=zone_id)
             data = orgs.values('id').annotate(
                 email=F('email'),
                 district=F('district_id__name'),
@@ -96,12 +106,6 @@ class IdeaCountListAPI(APIView):
                 group_formation=Coalesce(Sum('user_org_link_user_id__org_id__group_formation'), Value(0)),
                 idea_submissions=Coalesce(Sum('user_org_link_user_id__org_id__idea_submissions'), Value(0)),
             ).order_by('-no_of_entries')
-            if org_type:
-                data = data.filter(user_org_link_user_id__org_id__org_type=org_type)
-            if district_id:
-                data = orgs.filter(user_org_link_user_id__org_id__district_id=district_id)
-            if zone_id:
-                data = orgs.filter(user_org_link_user_id__org_id__district_id__zone_id=zone_id)
             data = data.values('full_name', 'district', 'email', 'no_of_entries', 'pre_registration', 'vos_completed',
                                'group_formation', 'idea_submissions')
             sort_fields['full_name'] = 'full_name'
